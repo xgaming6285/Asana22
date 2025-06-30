@@ -49,27 +49,31 @@ export default function TaskDetailModal() {
     } catch (err) {
       console.error("Error fetching task details:", err);
       setError(err.message);
-      setEditableTask(initialTaskData || null);
+      // Fallback to initial task data if available
+      if (initialTaskData) {
+        setEditableTask(initialTaskData);
+      }
     } finally {
       setLoading(false);
     }
   }, [taskId, initialTaskData]);
 
   useEffect(() => {
-    if (isOpen && isTaskDetailModal) {
-      if (
-        initialTaskData &&
-        (!editableTask || editableTask.id !== initialTaskData.id)
-      ) {
+    if (isOpen && isTaskDetailModal && taskId) {
+      // Set initial task data immediately if available
+      if (initialTaskData && initialTaskData.id === parseInt(taskId)) {
         setEditableTask({ ...initialTaskData });
       }
+      // Fetch fresh task details
       fetchTaskDetails();
     } else if (!isOpen || !isTaskDetailModal) {
+      // Reset state when modal closes
       setEditableTask(null);
       setError("");
       setIsSaving(false);
+      setLoading(false);
     }
-  }, [isOpen, isTaskDetailModal, taskId, initialTaskData, fetchTaskDetails, editableTask]);
+  }, [isOpen, isTaskDetailModal, taskId, fetchTaskDetails]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
