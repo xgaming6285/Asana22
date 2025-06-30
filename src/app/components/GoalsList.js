@@ -98,12 +98,19 @@ export default function GoalsList({ goals, onEdit, onDelete }) {
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div className="flex items-center justify-end space-x-4">
-                                        <button onClick={() => onEdit(goal)} className="text-blue-400 hover:text-blue-300" title="Edit Goal">
-                                            <PencilIcon className="h-5 w-5" />
-                                        </button>
-                                        <button onClick={() => onDelete(goal.id)} className="text-red-500 hover:text-red-400" title="Delete Goal">
-                                            <TrashIcon className="h-5 w-5" />
-                                        </button>
+                                        {goal.canEdit && (
+                                            <button onClick={() => onEdit(goal)} className="text-blue-400 hover:text-blue-300" title="Edit Goal">
+                                                <PencilIcon className="h-5 w-5" />
+                                            </button>
+                                        )}
+                                        {goal.canDelete && (
+                                            <button onClick={() => onDelete(goal.id)} className="text-red-500 hover:text-red-400" title="Delete Goal">
+                                                <TrashIcon className="h-5 w-5" />
+                                            </button>
+                                        )}
+                                        {!goal.canEdit && !goal.canDelete && (
+                                            <span className="text-gray-500 text-sm">View only</span>
+                                        )}
                                     </div>
                                 </td>
                             </tr>

@@ -122,6 +122,7 @@ export async function DELETE(request, context) {
     const goal = await prisma.goal.findUnique({ 
       where: { id: goalId },
       include: {
+        members: true,
         linkedProjects: {
           include: {
             project: {
@@ -139,12 +140,19 @@ export async function DELETE(request, context) {
       }
     });
 
+    if (!goal) {
+      return NextResponse.json({ error: "Goal not found" }, { status: 404 });
+    }
+
     let canDelete = false;
     
-    if (goal && goal.ownerId === user.id) {
+    // UPDATED LOGIC: Only goal owner can delete (consistent with task deletion logic)
+    // Goal members/editors can only modify, not delete (same as assigned users for tasks)
+    if (goal.ownerId === user.id) {
       canDelete = true;
     }
-    else if (goal && goal.linkedProjects.length > 0) {
+    // For linked goals, only project ADMIN/CREATOR can delete (same as task deletion)
+    else if (goal.linkedProjects.length > 0) {
       const hasAdminAccess = goal.linkedProjects.some(linkedProject => 
         linkedProject.project.projectMemberships.some(membership => 
           membership.role === 'ADMIN' || membership.role === 'CREATOR'
@@ -154,7 +162,7 @@ export async function DELETE(request, context) {
     }
 
     if (!canDelete) {
-      return NextResponse.json({ error: "Goal not found or you don't have permission to delete it" }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden: Only goal owner or project admin/creator can delete this goal" }, { status: 403 });
     }
 
     await prisma.goal.delete({ where: { id: goalId } });

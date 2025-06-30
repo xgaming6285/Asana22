@@ -73,7 +73,16 @@ export async function GET(request) {
         },
         linkedProjects: {
           include: {
-            project: true
+            project: {
+              include: {
+                projectMemberships: {
+                  where: {
+                    userId: user.id,
+                    status: 'ACTIVE'
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -86,16 +95,39 @@ export async function GET(request) {
       const userMembership = goal.members.find(m => m.userId === user.id);
       
       let canEdit = false;
+      let canDelete = false;
       
       if (projectId) {
         canEdit = goal.ownerId === user.id || 
                  (userMembership && (userMembership.role === 'EDITOR' || goal.type === 'TEAM'));
+        // For deletion: Only goal owner or project admin/creator can delete (consistent with task logic)
+        canDelete = goal.ownerId === user.id;
+        // Check if user is project admin/creator for linked goals
+        if (!canDelete && goal.linkedProjects.length > 0) {
+          const hasAdminAccess = goal.linkedProjects.some(linkedProject => 
+            linkedProject.project.projectMemberships?.some(membership => 
+              membership.userId === user.id && (membership.role === 'ADMIN' || membership.role === 'CREATOR')
+            )
+          );
+          canDelete = hasAdminAccess;
+        }
       } else {
         canEdit = goal.ownerId === user.id ||
                  (goal.type === 'TEAM' && userMembership?.role === 'EDITOR');
+        // For deletion: Only goal owner can delete (consistent with task logic)
+        canDelete = goal.ownerId === user.id;
+        // Check if user is project admin/creator for any linked goals
+        if (!canDelete && goal.linkedProjects.length > 0) {
+          const hasAdminAccess = goal.linkedProjects.some(linkedProject => 
+            linkedProject.project.projectMemberships?.some(membership => 
+              membership.userId === user.id && (membership.role === 'ADMIN' || membership.role === 'CREATOR')
+            )
+          );
+          canDelete = hasAdminAccess;
+        }
       }
 
-      return { ...goal, canEdit };
+      return { ...goal, canEdit, canDelete };
     });
 
     return NextResponse.json(goalsWithPermissions);
