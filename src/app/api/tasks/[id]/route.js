@@ -85,7 +85,16 @@ export async function GET(request, { params }) {
             projectMemberships: true
           }
         },
-        assignee: true // Може да се използва за проверка на права
+        assignee: true, // Може да се използва за проверка на права
+        createdBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            imageUrl: true,
+          },
+        },
       },
     });
 
@@ -304,7 +313,8 @@ export async function DELETE(request, { params }) {
             linkedGoals: true // Включваме свързаните цели на проекта
           }
         },
-        assignee: true
+        assignee: true,
+        createdBy: true
       }
     });
 
@@ -321,10 +331,10 @@ export async function DELETE(request, { params }) {
     const isProjectAdminOrCreator = taskToDelete.project?.projectMemberships.some(
       (member) => member.userId === user.id && (member.role === "ADMIN" || member.role === "CREATOR")
     );
-    // Може да решите, че само администратори/създатели могат да трият, а не assignee
-    // const isAssignee = taskToDelete.assigneeId === user.id;
+    const isTaskCreator = taskToDelete.createdById === user.id;
 
-    if (!isProjectAdminOrCreator) { // Само Admin/Creator може да трие
+    // Allow deletion if user is project admin/creator OR if user created the task
+    if (!isProjectAdminOrCreator && !isTaskCreator) {
       return NextResponse.json({ error: "Forbidden: Not authorized to delete this task" }, { status: 403 });
     }
 

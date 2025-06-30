@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -39,6 +40,15 @@ export async function GET(request) {
             imageUrl: true,
           },
         },
+        createdBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            imageUrl: true,
+          },
+        },
       },
     });
     return NextResponse.json(tasks);
@@ -54,6 +64,18 @@ export async function GET(request) {
 // CREATE a new task
 export async function POST(request) {
   try {
+    // Authentication check
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Get the user from the database
+    const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+    if (!user) {
+      return NextResponse.json({ error: "User not found in system" }, { status: 404 });
+    }
+
     const data = await request.json();
 
     // Validate required fields
@@ -77,12 +99,23 @@ export async function POST(request) {
       );
     }
 
-    // Optional: Check if project exists
-    const projectExists = await prisma.project.findUnique({
+    // Check if project exists and user has access
+    const project = await prisma.project.findUnique({
       where: { id: projectId },
+      include: {
+        projectMemberships: true
+      }
     });
-    if (!projectExists) {
+    if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
+    // Check if user is a member of the project
+    const isProjectMember = project.projectMemberships.some(
+      (member) => member.userId === user.id && member.status === "ACTIVE"
+    );
+    if (!isProjectMember) {
+      return NextResponse.json({ error: "Forbidden: Not authorized to create tasks in this project" }, { status: 403 });
     }
 
     const newTaskData = {
@@ -93,6 +126,7 @@ export async function POST(request) {
       startDate: data.startDate ? new Date(data.startDate) : null,
       dueDate: data.dueDate ? new Date(data.dueDate) : null,
       projectId: projectId,
+      createdById: user.id, // Set the creator of the task
     };
 
     // Optional: Add assigneeId if provided
@@ -123,6 +157,15 @@ export async function POST(request) {
       data: newTaskData,
       include: {
         assignee: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            imageUrl: true,
+          },
+        },
+        createdBy: {
           select: {
             id: true,
             firstName: true,

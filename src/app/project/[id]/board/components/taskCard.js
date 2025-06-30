@@ -52,6 +52,7 @@ const TaskCard = ({ task, assignee, onTaskUpdated, onTaskDeleted, currentUserRol
     commentsCount = 0,
     attachmentsCount = 0,
     status,
+    createdBy,
   } = task;
 
   const formattedDueDate = dueDate
@@ -70,10 +71,12 @@ const TaskCard = ({ task, assignee, onTaskUpdated, onTaskDeleted, currentUserRol
   const PriorityIcon = priorityInfo.icon;
 
   // Check if current user can delete this task
-  const canDeleteTask = currentUserRole === 'ADMIN' || currentUserRole === 'CREATOR';
+  const isProjectAdminOrCreator = currentUserRole === 'ADMIN' || currentUserRole === 'CREATOR';
+  const isTaskCreator = createdBy && createdBy.id === currentUserId;
+  const canDeleteTask = isProjectAdminOrCreator || isTaskCreator;
   
   // Debug logging
-  console.log(`Debug TaskCard - Task ${id}: currentUserRole=${currentUserRole}, canDeleteTask=${canDeleteTask}`);
+  console.log(`Debug TaskCard - Task ${id}: currentUserRole=${currentUserRole}, currentUserId=${currentUserId}, createdById=${createdBy?.id}, isTaskCreator=${isTaskCreator}, canDeleteTask=${canDeleteTask}`);
 
   const handleTaskClick = () => {
     openModal({
@@ -198,8 +201,8 @@ const TaskCard = ({ task, assignee, onTaskUpdated, onTaskDeleted, currentUserRol
           </div>
         )}
 
-        {/* Assignee */}
-        <div className="flex items-center mb-4">
+        {/* Assignee and Creator */}
+        <div className="flex items-center mb-4 gap-2">
           <div className="flex items-center gap-2 px-2.5 py-1 bg-gray-700/30 rounded-lg border border-gray-600/30">
             <UserCircleIcon className="h-3 w-3 text-gray-400 flex-shrink-0" />
             <span className="text-xs text-gray-300 font-medium truncate">
@@ -208,6 +211,13 @@ const TaskCard = ({ task, assignee, onTaskUpdated, onTaskDeleted, currentUserRol
                 : "Unassigned"}
             </span>
           </div>
+          {createdBy && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-purple-500/20 rounded-lg border border-purple-500/30">
+              <span className="text-xs text-purple-300 font-medium">
+                Created by {createdBy.firstName} {createdBy.lastName || ""}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Footer with Stats */}

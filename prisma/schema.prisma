@@ -49,6 +49,7 @@ model User {
   // Relations
   projectMemberships   ProjectMembership[] // Memberships in different projects
   tasks                Task[]              // Tasks assigned to this user
+  createdTasks         Task[]              @relation("TaskCreator") // Tasks created by this user
   comments             Comment[]           // Comments made by this user
   messages             Message[]           // Messages sent by this user
   files                File[]              // Files uploaded by this user
@@ -172,6 +173,8 @@ model Task {
   project     Project  @relation(fields: [projectId], references: [id])
   assigneeId  Int?
   assignee    User?    @relation(fields: [assigneeId], references: [id])
+  createdById Int      // The user who created this task
+  createdBy   User     @relation("TaskCreator", fields: [createdById], references: [id])
   comments    Comment[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
