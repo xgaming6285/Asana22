@@ -1,0 +1,51 @@
+{
+  "name": "project-managment",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && cross-env NODE_ENV=production next build",
+    "start": "cross-env NODE_ENV=production next start",
+    "lint": "next lint",
+    "postinstall": "prisma generate",
+    "vercel-build": "prisma generate && prisma migrate deploy && cross-env NODE_ENV=production next build",
+    "analyze": "cross-env ANALYZE=true next build"
+  },
+  "dependencies": {
+    "@clerk/elements": "^0.23.31",
+    "@clerk/nextjs": "^6.20.1",
+    "@clerk/themes": "^2.2.48",
+    "@headlessui/react": "^2.2.4",
+    "@heroicons/react": "^2.2.0",
+    "@material-tailwind/react": "^2.1.10",
+    "@prisma/client": "^6.8.2",
+    "@react-email/components": "^0.0.41",
+    "@tailwindcss/line-clamp": "^0.4.4",
+    "@tanstack/react-query": "^5.62.12",
+    "@tanstack/react-query-devtools": "^5.62.12",
+    "date-fns": "^4.1.0",
+    "next": "15.3.2",
+    "prisma": "^6.8.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-dropzone": "^14.3.8",
+    "react-icons": "^5.5.0",
+    "recharts": "^2.15.3",
+    "resend": "^4.5.2",
+    "svix": "^1.66.0",
+    "tailwind-scrollbar": "^4.0.2"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@next/bundle-analyzer": "^15.3.3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "22.15.24",
+    "@types/react": "19.1.6",
+    "critters": "^0.0.23",
+    "cross-env": "^7.0.3",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.2",
+    "tailwindcss": "^4",
+    "typescript": "^5.8.3"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "buildCommand": "prisma generate && prisma migrate deploy && next build",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "PRISMA_CLIENT_ENGINE_TYPE": "dataproxy"
+  }
+}

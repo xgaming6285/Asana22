@@ -1,0 +1,233 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Enums: Define a set of named constants ---
+
+enum ProjectRole {
+  ADMIN
+  CREATOR
+  USER
+}
+
+enum MembershipStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+}
+
+enum GoalType {
+  COMPANY
+  TEAM
+  PERSONAL
+}
+
+enum GoalMembershipRole {
+  EDITOR
+  MEMBER
+}
+
+// --- Main Models ---
+
+// Represents a user in the system, synced with Clerk
+model User {
+  id                   Int                 @id @default(autoincrement())
+  clerkId              String              @unique
+  email                String              @unique
+  firstName            String?
+  lastName             String?
+  imageUrl             String?
+
+  // Relations
+  projectMemberships   ProjectMembership[] // Memberships in different projects
+  tasks                Task[]              // Tasks assigned to this user
+  comments             Comment[]           // Comments made by this user
+  messages             Message[]           // Messages sent by this user
+  files                File[]              // Files uploaded by this user
+  ownedGoals           Goal[]              @relation("GoalOwner") // Goals owned by this user
+  goalMemberships      GoalMembership[]    // Goals this user is a member of
+  sentInvitations      ProjectInvitation[] // Invitations sent by this user
+
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+}
+
+// Represents a project
+model Project {
+  id                   Int                 @id @default(autoincrement())
+  name                 String
+  description          String?
+  
+  // Relations
+  projectMemberships   ProjectMembership[]
+  tasks                Task[]
+  linkedGoals          ProjectGoal[]       // Goals that this project is contributing to
+  messages             Message[]
+  files                File[]
+  invitations          ProjectInvitation[] // Project invitations
+
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+}
+
+// Represents a goal, which can be high-level or a sub-goal
+model Goal {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  status      String   @default("not_started") // e.g., "not_started", "in_progress", "at_risk", "completed"
+  progress    Int      @default(0)
+  privacy     String   @default("public") // "public" or "private"
+
+  // Time-related fields
+  startDate   DateTime?
+  endDate     DateTime?
+
+  // Type of goal (company, team, or personal)
+  type        GoalType @default(PERSONAL)
+
+  // Relations
+  ownerId     Int
+  owner       User     @relation("GoalOwner", fields: [ownerId], references: [id]) // The single owner responsible for the goal
+
+  parentGoalId Int?
+  parentGoal   Goal?    @relation("GoalHierarchy", fields: [parentGoalId], references: [id], onDelete: NoAction, onUpdate: NoAction) // The parent goal, if this is a sub-goal
+  subGoals     Goal[]   @relation("GoalHierarchy") // List of sub-goals under this goal
+
+  linkedProjects ProjectGoal[]      // Projects that contribute to this goal
+  members        GoalMembership[]   // List of users who are members of this goal
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+// --- Linking (Join) Tables for Many-to-Many Relationships ---
+
+// Links a User to a Project with a specific role
+model ProjectMembership {
+  id        Int              @id @default(autoincrement())
+  projectId Int
+  project   Project          @relation(fields: [projectId], references: [id])
+  userId    Int
+  user      User             @relation(fields: [userId], references: [id])
+  role      ProjectRole
+  status    MembershipStatus @default(ACTIVE)
+  invitedBy Int?
+  invitedAt DateTime         @default(now())
+  joinedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, userId])
+}
+
+// Links a Project to a Goal, allowing a project to contribute to multiple goals
+model ProjectGoal {
+  projectId Int
+  goalId    Int
+  project   Project @relation(fields: [projectId], references: [id])
+  goal      Goal    @relation(fields: [goalId], references: [id])
+
+  @@id([projectId, goalId])
+}
+
+// Links a User to a Goal as a member/collaborator
+model GoalMembership {
+  id        Int      @id @default(autoincrement())
+  goalId    Int
+  goal      Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role      GoalMembershipRole @default(MEMBER)
+
+  createdAt DateTime @default(now())
+
+  @@unique([goalId, userId])
+}
+
+
+// --- Other Content Models ---
+
+// Represents a single task within a project
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  status      String   // e.g., "todo", "in-progress", "done"
+  priority    String   @default("medium")
+  startDate   DateTime?
+  dueDate     DateTime?
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id])
+  assigneeId  Int?
+  assignee    User?    @relation(fields: [assigneeId], references: [id])
+  comments    Comment[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Represents a comment on a task
+model Comment {
+  id        Int      @id @default(autoincrement())
+  text      String
+  taskId    Int
+  task      Task     @relation(fields: [taskId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+// Represents a message in a project's discussion
+model Message {
+  id        Int      @id @default(autoincrement())
+  text      String
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Represents a file uploaded to a project
+model File {
+  id         Int      @id @default(autoincrement())
+  name       String
+  url        String
+  size       Int
+  type       String
+  projectId  Int
+  project    Project  @relation(fields: [projectId], references: [id])
+  uploaderId Int
+  uploader   User     @relation(fields: [uploaderId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// Represents a project invitation
+model ProjectInvitation {
+  id          Int      @id @default(autoincrement())
+  email       String
+  status      String   @default("PENDING") // PENDING, ACCEPTED, REJECTED, EXPIRED
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id])
+  inviterId   Int
+  inviter     User     @relation(fields: [inviterId], references: [id])
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+}
