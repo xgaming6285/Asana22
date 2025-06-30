@@ -7,6 +7,7 @@ import { ModalProvider } from "./context/ModalContext";
 import { CacheProvider } from "./context/CacheContext";
 import CreateTaskModal from "./components/CreateTaskModal";
 import TaskDetailModal from "./components/TaskDetailModal";
+import InviteMemberModal from "./components/InviteMemberModal";
 import { Inter } from "next/font/google";
 import QueryProvider from "./providers/QueryProvider";
 
@@ -52,6 +53,7 @@ export default function RootLayout({ children }) {
               </main>
               <CreateTaskModal />
               <TaskDetailModal />
+              <InviteMemberModal />
             </ModalProvider>
           </CacheProvider>
         </ClerkProvider>

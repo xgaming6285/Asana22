@@ -450,15 +450,6 @@ const ProjectOverviewPage = () => {
                 <PlusIcon className="h-5 w-5" />
                 Create Task
               </Button>
-              <Button
-                onClick={handleOpenInviteModal}
-                variant="outlined"
-                color="purple"
-                className="px-6 py-3 text-base font-semibold flex items-center gap-2"
-              >
-                <UserGroupIcon className="h-5 w-5" />
-                Invite Member
-              </Button>
             </div>
           </div>
         </header>
