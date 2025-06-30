@@ -91,7 +91,21 @@ export async function GET(request) {
       },
     });
 
-    return createApiResponse(projects, { cachePolicy: 'SHORT' });
+    // Add current user's role and permissions to each project
+    const projectsWithUserRole = projects.map(project => {
+      const currentUserMembership = project.projectMemberships.find(
+        membership => membership.userId === dbUser.id
+      );
+      
+      return {
+        ...project,
+        currentUserRole: currentUserMembership?.role,
+        canDelete: currentUserMembership?.role === "CREATOR",
+        canEdit: currentUserMembership?.role === "CREATOR" || currentUserMembership?.role === "ADMIN",
+      };
+    });
+
+    return createApiResponse(projectsWithUserRole, { cachePolicy: 'SHORT' });
   });
 }
 

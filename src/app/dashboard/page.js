@@ -75,10 +75,17 @@ const StatsIcon = () => (
   </svg>
 );
 
+const TrashIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+  </svg>
+);
+
 // Enhanced Project Card Component
-const ProjectCard = ({ project, viewMode = 'grid' }) => {
+const ProjectCard = ({ project, viewMode = 'grid', onProjectDeleted }) => {
   const [projectStats, setProjectStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchProjectStats = async () => {
@@ -133,6 +140,48 @@ const ProjectCard = ({ project, viewMode = 'grid' }) => {
       }).format(date);
     } catch (error) {
       return 'Invalid Date';
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!project.canDelete) {
+      alert('You do not have permission to delete this project.');
+      return;
+    }
+
+    // Debug logging
+    console.log('DELETE PROJECT FRONTEND DEBUG:');
+    console.log('Project:', project);
+    console.log('Project ID:', project.id);
+    console.log('Can Delete:', project.canDelete);
+    console.log('Current User Role:', project.currentUserRole);
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${project.name}"? This action cannot be undone and will remove all tasks, files, and other project data.`
+    );
+
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      const response = await fetch(`/api/projects/${project.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || error.message || 'Failed to delete project');
+      }
+
+      // Call the callback to refresh the projects list
+      if (onProjectDeleted) {
+        onProjectDeleted(project.id);
+      }
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      alert(`Failed to delete project: ${error.message}`);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -205,6 +254,20 @@ const ProjectCard = ({ project, viewMode = 'grid' }) => {
               >
                 Open
               </Link>
+              {project.canDelete && (
+                <button
+                  onClick={handleDeleteProject}
+                  disabled={deleting}
+                  className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-sm font-medium py-2 px-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed"
+                  title="Delete Project"
+                >
+                  {deleting ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <TrashIcon />
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -342,6 +405,20 @@ const ProjectCard = ({ project, viewMode = 'grid' }) => {
           >
             <StatsIcon className="w-4 h-4" />
           </Link>
+          {project.canDelete && (
+            <button
+              onClick={handleDeleteProject}
+              disabled={deleting}
+              className="flex items-center justify-center bg-red-600/50 hover:bg-red-600 disabled:bg-red-400/50 text-red-300 hover:text-white disabled:text-red-200 p-2.5 rounded-xl transition-all duration-300 backdrop-blur-sm border border-red-600/50 hover:border-red-500/50 disabled:border-red-400/50 disabled:cursor-not-allowed"
+              title="Delete Project"
+            >
+              {deleting ? (
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <TrashIcon />
+              )}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -434,7 +511,7 @@ const EmptyState = ({ onCreateProjectClick }) => (
 );
 
 // Enhanced Projects List Component
-const ProjectsListComponent = ({ projects, viewMode, searchTerm, sortBy }) => {
+const ProjectsListComponent = ({ projects, viewMode, searchTerm, sortBy, onProjectDeleted }) => {
   const filteredAndSortedProjects = projects
     .filter(project => 
       project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -474,7 +551,7 @@ const ProjectsListComponent = ({ projects, viewMode, searchTerm, sortBy }) => {
           className="animate-slide-in-up"
           style={{ animationDelay: `${index * 50}ms` }}
         >
-          <ProjectCard project={project} viewMode={viewMode} />
+          <ProjectCard project={project} viewMode={viewMode} onProjectDeleted={onProjectDeleted} />
         </div>
       ))}
     </div>
@@ -2142,7 +2219,7 @@ export default function Home() {
   };
 
   // Use our custom hook for data fetching
-  const { data: projects, error: projectsError, isLoading: loadingProjects } = useFetch(
+  const { data: fetchedProjects, error: projectsError, isLoading: loadingProjects } = useFetch(
     isLoaded && isSignedIn ? '/api/projects' : null,
     {
       revalidateOnFocus: true,
@@ -2152,6 +2229,16 @@ export default function Home() {
       }
     }
   );
+
+  // Local state for projects to handle real-time updates
+  const [projects, setProjects] = useState(null);
+
+  // Update local projects state when fetchedProjects changes
+  useEffect(() => {
+    if (fetchedProjects) {
+      setProjects(fetchedProjects);
+    }
+  }, [fetchedProjects]);
 
   const handleProjectFormChange = (e) => {
     const { name, value } = e.target;
@@ -2193,6 +2280,14 @@ export default function Home() {
       setCreatingProject(false);
     }
   }
+
+  const handleProjectDeleted = (deletedProjectId) => {
+    // Remove the deleted project from the local state
+    if (projects) {
+      const updatedProjects = projects.filter(project => project.id !== deletedProjectId);
+      setProjects(updatedProjects);
+    }
+  };
 
   if (!isLoaded) {
     return (
@@ -2441,6 +2536,7 @@ export default function Home() {
                       viewMode={viewMode}
                       searchTerm={searchTerm}
                       sortBy={sortBy}
+                      onProjectDeleted={handleProjectDeleted}
                     />
                   </div>
 
