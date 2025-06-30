@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
+import { encryptGoalData, decryptGoalsArray } from "../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -130,7 +131,10 @@ export async function GET(request) {
       return { ...goal, canEdit, canDelete };
     });
 
-    return NextResponse.json(goalsWithPermissions);
+    // Decrypt goals before sending to client
+    const decryptedGoals = decryptGoalsArray(goalsWithPermissions);
+
+    return NextResponse.json(decryptedGoals);
 
   } catch (error) {
     console.error("Goals GET Error:", error);
@@ -183,10 +187,13 @@ export async function POST(request) {
     const finalOwnerId = ownerId ? parseInt(ownerId) : user.id;
     const finalType = type || (projectId ? 'TEAM' : 'PERSONAL');
 
+    // Encrypt goal data before storing
+    const encryptedData = encryptGoalData({ title, description });
+
     const newGoal = await prisma.goal.create({
       data: {
-        title,
-        description,
+        title: encryptedData.title,
+        description: encryptedData.description,
         type: finalType,
         ownerId: finalOwnerId,
         privacy: privacy || "public",
@@ -229,7 +236,10 @@ export async function POST(request) {
       }
     });
 
-    return NextResponse.json(newGoal, { status: 201 });
+    // Decrypt goal data before sending response
+    const decryptedGoal = decryptGoalsArray([newGoal])[0];
+
+    return NextResponse.json(decryptedGoal, { status: 201 });
 
   } catch (error) {
     console.error("Goals POST Error:", error);

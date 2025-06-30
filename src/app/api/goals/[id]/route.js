@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
+import { encryptGoalData, decryptGoalData } from "../../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -74,9 +75,12 @@ export async function PATCH(request, context) {
       return NextResponse.json({ error: "You don't have permission to edit this goal" }, { status: 403 });
     }
 
+    // Encrypt the data to update if it contains sensitive fields
+    const encryptedDataToUpdate = encryptGoalData(dataToUpdate);
+
     const updatedGoal = await prisma.goal.update({
       where: { id: goalId },
-      data: dataToUpdate,
+      data: encryptedDataToUpdate,
       include: {
         owner: true,
         members: {
@@ -92,7 +96,10 @@ export async function PATCH(request, context) {
       }
     });
 
-    return NextResponse.json(updatedGoal);
+    // Decrypt goal data before sending response
+    const decryptedGoal = decryptGoalData(updatedGoal);
+
+    return NextResponse.json(decryptedGoal);
 
   } catch (error) {
     console.error("Goal PATCH Error:", error);

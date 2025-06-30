@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
 import { createApiResponse, withErrorHandling } from "../../utils/apiOptimizer";
+import { encryptGoalData, decryptGoalsArray } from "../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -97,8 +98,15 @@ export async function GET(request) {
         membership => membership.userId === dbUser.id
       );
       
+      // Decrypt linked goals
+      const decryptedLinkedGoals = project.linkedGoals.map(linkedGoal => ({
+        ...linkedGoal,
+        goal: decryptGoalsArray([linkedGoal.goal])[0]
+      }));
+      
       return {
         ...project,
+        linkedGoals: decryptedLinkedGoals,
         currentUserRole: currentUserMembership?.role,
         canDelete: currentUserMembership?.role === "CREATOR",
         canEdit: currentUserMembership?.role === "CREATOR" || currentUserMembership?.role === "ADMIN",
@@ -183,10 +191,16 @@ export async function POST(request) {
           throw new Error("Invalid goal endDate format");
         }
 
+        // Encrypt goal data before storing
+        const encryptedGoalData = encryptGoalData({
+          title: goalData.title.trim(),
+          description: goalData.description?.trim() || null
+        });
+
         newGoal = await tx.goal.create({
           data: {
-            title: goalData.title.trim(),
-            description: goalData.description?.trim() || null,
+            title: encryptedGoalData.title,
+            description: encryptedGoalData.description,
             privacy: goalData.privacy,
             type: goalData.type,
             startDate: goalData.startDate ? new Date(goalData.startDate) : null,
