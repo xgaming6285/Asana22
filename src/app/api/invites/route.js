@@ -5,8 +5,6 @@ import { db } from '@/app/lib/db';
 import ProjectInvitationEmail from '@/app/components/emails/ProjectInvitation';
 import signalService from '@/app/services/signalService';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(req) {
     try {
         const user = await currentUser();
@@ -61,16 +59,28 @@ export async function POST(req) {
         const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${invitation.id}`;
 
         // Send email invitation
-        await resend.emails.send({
-            from: 'Project Management <noreply@projectmanagement.com>',
-            to: email,
-            subject: `Invitation to join ${project.name}`,
-            react: ProjectInvitationEmail({
-                projectName: project.name,
-                inviterName: `${user.firstName} ${user.lastName}`,
-                inviteLink
-            })
-        });
+        let emailSent = false;
+        if (process.env.RESEND_API_KEY) {
+            try {
+                const resend = new Resend(process.env.RESEND_API_KEY);
+                await resend.emails.send({
+                    from: 'Project Management <noreply@projectmanagement.com>',
+                    to: email,
+                    subject: `Invitation to join ${project.name}`,
+                    react: ProjectInvitationEmail({
+                        projectName: project.name,
+                        inviterName: `${user.firstName} ${user.lastName}`,
+                        inviteLink
+                    })
+                });
+                emailSent = true;
+            } catch (error) {
+                console.error('Failed to send email invitation:', error);
+                // Don't fail the entire request if email fails during build
+            }
+        } else {
+            console.warn('RESEND_API_KEY not configured, skipping email invitation');
+        }
 
         // Send Signal message if phone and API key are provided
         let signalSent = false;
@@ -94,7 +104,7 @@ export async function POST(req) {
         return NextResponse.json({
             message: 'Invitation sent successfully',
             invitationId: invitation.id,
-            emailSent: true,
+            emailSent: emailSent,
             signalSent: signalSent
         });
 
