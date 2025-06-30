@@ -96,9 +96,9 @@ export default function TestSignalPage() {
               <h3 className="text-indigo-300 font-medium mb-2">📱 Setup Instructions:</h3>
               <ol className="text-sm text-indigo-200 space-y-1 list-decimal list-inside">
                 <li>Add <strong>+34 644 52 74 88</strong> to your Signal contacts</li>
-                <li>Send "I allow callmebot to send me messages" to that contact</li>
-                <li>Copy the API key from the bot's response</li>
-                <li>Paste it above and click "Send Test Message"</li>
+                <li>Send &quot;I allow callmebot to send me messages&quot; to that contact</li>
+                <li>Copy the API key from the bot&apos;s response</li>
+                <li>Paste it above and click &quot;Send Test Message&quot;</li>
               </ol>
             </div>
 

@@ -584,7 +584,7 @@ const ProjectOverviewPage = () => {
                 <div className="text-center py-12">
                   <TrophyIcon className="h-16 w-16 mx-auto mb-4 text-gray-600" />
                   <p className="text-xl text-gray-400 mb-2">No goals set yet</p>
-                  <p className="text-gray-500 mb-6">Define clear objectives to track your project's success</p>
+                  <p className="text-gray-500 mb-6">Define clear objectives to track your project&apos;s success</p>
                   <Button
                     onClick={() => setIsCreatingGoal(true)}
                     variant="gradient"

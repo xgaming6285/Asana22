@@ -215,7 +215,7 @@ export default function InviteMemberModal() {
                       <div className="bg-slate-800/30 rounded-lg p-3">
                         <p className="text-xs text-slate-400 leading-relaxed">
                           📱 To get your API key: Add <strong>+34 644 52 74 88</strong> to your contacts, 
-                          then send "I allow callmebot to send me messages" via Signal.
+                          then send &quot;I allow callmebot to send me messages&quot; via Signal.
                         </p>
                       </div>
                     </div>

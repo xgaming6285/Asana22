@@ -69,7 +69,7 @@ export default function TaskDetailModal() {
       setError("");
       setIsSaving(false);
     }
-  }, [isOpen, isTaskDetailModal, taskId, initialTaskData, fetchTaskDetails]);
+  }, [isOpen, isTaskDetailModal, taskId, initialTaskData, fetchTaskDetails, editableTask]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

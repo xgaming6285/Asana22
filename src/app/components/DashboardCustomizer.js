@@ -32,7 +32,15 @@ const DashboardCustomizer = ({ onLayoutChange, currentLayout }) => {
               setWidgets(prefs.widgets);
             } else {
               // New format: object with widget IDs as keys
-              const updatedWidgets = widgets.map(widget => ({
+              const defaultWidgets = [
+                { id: 'overview', name: 'Overview Stats', enabled: true, icon: '📊' },
+                { id: 'notifications', name: 'Smart Alerts', enabled: true, icon: '🔔' },
+                { id: 'quickTask', name: 'Quick Task Creator', enabled: true, icon: '⚡' },
+                { id: 'performance', name: 'Performance Analytics', enabled: true, icon: '📈' },
+                { id: 'activity', name: 'Activity Feed', enabled: true, icon: '🔥' },
+                { id: 'quickActions', name: 'Quick Actions', enabled: true, icon: '🚀' },
+              ];
+              const updatedWidgets = defaultWidgets.map(widget => ({
                 ...widget,
                 enabled: prefs.widgets[widget.id] !== false // Default to true if not specified
               }));

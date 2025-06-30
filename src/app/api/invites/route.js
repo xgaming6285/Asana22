@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 import { NextResponse } from 'next/server';
-import { currentUser } from '@clerk/nextjs';
+import { currentUser } from '@clerk/nextjs/server';
 import { db } from '@/app/lib/db';
 import ProjectInvitationEmail from '@/app/components/emails/ProjectInvitation';
 import signalService from '@/app/services/signalService';
