@@ -5,22 +5,64 @@ const prisma = new PrismaClient();
 const handleResponse = async (response) => {
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error || error.message || "Something went wrong");
+    throw new Error(error.message || "Something went wrong");
   }
   return response.json();
 };
 
-const membershipService = {
-  // Get all members of a project with their roles
-  async getProjectMembers(projectId) {
-    try {
-      const response = await fetch(`/api/members?projectId=${projectId}`);
-      return handleResponse(response);
-    } catch (error) {
-      console.error("Error in getProjectMembers:", error);
-      throw error;
+// Get all project members
+const getProjectMembers = async (projectId) => {
+  if (!projectId) {
+    throw new Error("Project ID is required");
+  }
+  const response = await fetch(`/api/members?projectId=${projectId}`);
+  return handleResponse(response);
+};
+
+// Get current user's role in a project
+const getCurrentUserRole = async (projectId) => {
+  if (!projectId) {
+    throw new Error("Project ID is required");
+  }
+  try {
+    const members = await getProjectMembers(projectId);
+    // Get current user info from auth
+    const currentUserResponse = await fetch('/api/auth/me');
+    if (!currentUserResponse.ok) {
+      throw new Error("Failed to get current user");
     }
-  },
+    const currentUser = await currentUserResponse.json();
+    
+    console.log("Debug - Current user:", currentUser);
+    console.log("Debug - Members:", members);
+    
+    // Find current user in members list - match by clerkId
+    const userMembership = members.find(member => member.clerkId === currentUser.clerkId);
+    console.log("Debug - Found membership:", userMembership);
+    
+    return userMembership ? userMembership.role : null;
+  } catch (error) {
+    console.error("Error getting current user role:", error);
+    return null;
+  }
+};
+
+// Invite a member to a project
+const inviteMember = async (projectId, email, role) => {
+  const response = await fetch("/api/members", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ projectId, email, role }),
+  });
+  return handleResponse(response);
+};
+
+const membershipService = {
+  getProjectMembers,
+  getCurrentUserRole,
+  inviteMember,
 
   // Get a specific project member
   async getProjectMember(projectId, userId) {

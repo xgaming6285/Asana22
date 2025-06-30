@@ -6,6 +6,7 @@ import TaskCard from "./taskCard"; // Import the new TaskCard
 import { ChartBarIcon, ClockIcon, CheckCircleIcon, PlayIcon } from "@heroicons/react/24/outline";
 import { useModal } from "../../../../context/ModalContext";
 import taskService from "../../../../services/taskService";
+import membershipService from "../../../../services/membershipService";
 
 const columnTitles = {
   todo: "To Do",
@@ -46,6 +47,8 @@ export default function BoardColumns({ projectId, projectMembers = [] }) {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentUserRole, setCurrentUserRole] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const fetchTasks = async () => {
     setLoading(true);
@@ -78,6 +81,23 @@ export default function BoardColumns({ projectId, projectMembers = [] }) {
     }
   };
 
+  // Fetch current user info and role
+  const fetchCurrentUserInfo = async () => {
+    try {
+      const [userInfo, userRole] = await Promise.all([
+        fetch('/api/auth/me').then(res => res.json()),
+        membershipService.getCurrentUserRole(projectId)
+      ]);
+      
+      if (userInfo && !userInfo.error) {
+        setCurrentUser(userInfo);
+      }
+      setCurrentUserRole(userRole);
+    } catch (error) {
+      console.error("Failed to fetch current user info:", error);
+    }
+  };
+
   useEffect(() => {
     if (!projectId) {
       setLoading(false);
@@ -85,6 +105,7 @@ export default function BoardColumns({ projectId, projectMembers = [] }) {
       return;
     }
     fetchTasks();
+    fetchCurrentUserInfo();
   }, [projectId]);
 
   const handleTaskUpdated = async () => {
@@ -334,6 +355,8 @@ export default function BoardColumns({ projectId, projectMembers = [] }) {
                           assignee={findAssignee(task.assigneeId)}
                           onTaskUpdated={handleTaskUpdated}
                           onTaskDeleted={handleTaskDeleted}
+                          currentUserRole={currentUserRole}
+                          currentUserId={currentUser?.id}
                         />
                       </div>
                     ))

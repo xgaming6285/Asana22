@@ -41,7 +41,7 @@ const priorityConfig = {
   },
 };
 
-const TaskCard = ({ task, assignee, onTaskUpdated, onTaskDeleted }) => {
+const TaskCard = ({ task, assignee, onTaskUpdated, onTaskDeleted, currentUserRole, currentUserId }) => {
   const { openModal } = useModal();
   const {
     id,
@@ -68,6 +68,12 @@ const TaskCard = ({ task, assignee, onTaskUpdated, onTaskDeleted }) => {
 
   const priorityInfo = priorityConfig[priority.toLowerCase()] || priorityConfig.medium;
   const PriorityIcon = priorityInfo.icon;
+
+  // Check if current user can delete this task
+  const canDeleteTask = currentUserRole === 'ADMIN' || currentUserRole === 'CREATOR';
+  
+  // Debug logging
+  console.log(`Debug TaskCard - Task ${id}: currentUserRole=${currentUserRole}, canDeleteTask=${canDeleteTask}`);
 
   const handleTaskClick = () => {
     openModal({
@@ -127,29 +133,31 @@ const TaskCard = ({ task, assignee, onTaskUpdated, onTaskDeleted }) => {
           <h3 className="text-sm font-bold text-gray-100 break-words leading-tight flex-1 min-w-0 group-hover:text-white transition-colors duration-200">
             {title}
           </h3>
-          <Menu as="div" className="relative inline-block text-left flex-shrink-0">
-            <div onClick={handleMenuClick}>
-              <MenuButton className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-700/50 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all duration-200 opacity-0 group-hover:opacity-100">
-                <EllipsisVerticalIcon className="h-4 w-4" />
-              </MenuButton>
-            </div>
-            <MenuItems className="absolute right-0 z-50 mt-2 w-48 origin-top-right rounded-xl bg-gray-800/95 backdrop-blur-sm shadow-2xl ring-1 ring-gray-700/50 border border-gray-600/50 transition focus:outline-none">
-              <div className="py-2">
-                <MenuItem>
-                  {({ focus }) => (
-                    <button
-                      onClick={handleDeleteClick}
-                      className={`block w-full px-4 py-2 text-left text-sm text-red-400 hover:text-red-300 transition-colors duration-200 ${
-                        focus ? "bg-red-500/10" : ""
-                      }`}
-                    >
-                      🗑️ Delete Task
-                    </button>
-                  )}
-                </MenuItem>
+          {canDeleteTask && (
+            <Menu as="div" className="relative inline-block text-left flex-shrink-0">
+              <div onClick={handleMenuClick}>
+                <MenuButton className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-700/50 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all duration-200 opacity-0 group-hover:opacity-100">
+                  <EllipsisVerticalIcon className="h-4 w-4" />
+                </MenuButton>
               </div>
-            </MenuItems>
-          </Menu>
+              <MenuItems className="absolute right-0 z-50 mt-2 w-48 origin-top-right rounded-xl bg-gray-800/95 backdrop-blur-sm shadow-2xl ring-1 ring-gray-700/50 border border-gray-600/50 transition focus:outline-none">
+                <div className="py-2">
+                  <MenuItem>
+                    {({ focus }) => (
+                      <button
+                        onClick={handleDeleteClick}
+                        className={`block w-full px-4 py-2 text-left text-sm text-red-400 hover:text-red-300 transition-colors duration-200 ${
+                          focus ? "bg-red-500/10" : ""
+                        }`}
+                      >
+                        🗑️ Delete Task
+                      </button>
+                    )}
+                  </MenuItem>
+                </div>
+              </MenuItems>
+            </Menu>
+          )}
         </div>
 
         {/* Description */}
