@@ -123,4 +123,63 @@ export function decryptGoalsArray(goals) {
   }
 
   return goals.map(goal => decryptGoalData(goal));
+}
+
+/**
+ * Encrypt task data fields
+ * @param {Object} taskData - The task data object
+ * @returns {Object} - Task data with encrypted sensitive fields
+ */
+export function encryptTaskData(taskData) {
+  if (!taskData || typeof taskData !== 'object') {
+    return taskData;
+  }
+
+  const encrypted = { ...taskData };
+
+  // Encrypt sensitive fields
+  if (encrypted.title) {
+    encrypted.title = encrypt(encrypted.title);
+  }
+  if (encrypted.description) {
+    encrypted.description = encrypt(encrypted.description);
+  }
+
+  return encrypted;
+}
+
+/**
+ * Decrypt task data fields
+ * @param {Object} taskData - The task data object with encrypted fields
+ * @returns {Object} - Task data with decrypted sensitive fields
+ */
+export function decryptTaskData(taskData) {
+  if (!taskData || typeof taskData !== 'object') {
+    return taskData;
+  }
+
+  const decrypted = { ...taskData };
+
+  // Decrypt sensitive fields
+  if (decrypted.title) {
+    decrypted.title = decrypt(decrypted.title);
+  }
+  if (decrypted.description) {
+    decrypted.description = decrypt(decrypted.description);
+  }
+
+  return decrypted;
+}
+
+/**
+ * Decrypt an array of task objects
+ * @param {Array} tasks - Array of task objects
+ * @returns {Array} - Array of tasks with decrypted data
+ */
+export function decryptTasksArray(tasks) {
+  if (!Array.isArray(tasks)) {
+    return tasks;
+  }
+
+  return tasks.map(task => decryptTaskData(task));
 } 

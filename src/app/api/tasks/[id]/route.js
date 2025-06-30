@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server"; // Import Clerk auth
 import { PrismaClient } from "@prisma/client";
+import { encryptTaskData, decryptTaskData } from "../../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -117,7 +118,10 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "Forbidden: Not authorized to view this task" }, { status: 403 });
     }
 
-    return NextResponse.json(task);
+    // Decrypt task data before sending response
+    const decryptedTask = decryptTaskData(task);
+
+    return NextResponse.json(decryptedTask);
   } catch (error) {
     console.error(`Error fetching task ${id}:`, error);
     return NextResponse.json(
@@ -235,6 +239,16 @@ async function updateTask(request, params) {
       }
     }
 
+    // Encrypt the sensitive fields if they are being updated
+    if (updateData.title || updateData.description) {
+      const encryptedData = encryptTaskData({
+        title: updateData.title,
+        description: updateData.description
+      });
+      if (updateData.title) updateData.title = encryptedData.title;
+      if (updateData.description) updateData.description = encryptedData.description;
+    }
+
     if (Object.keys(updateData).length === 0) {
       // Ако няма подадени полета за актуализация
       return NextResponse.json(originalTask); // Връщаме оригиналната задача
@@ -279,7 +293,10 @@ async function updateTask(request, params) {
     );
     await Promise.all(updatePromises); // Изчакваме всички актуализации да приключат
 
-    return NextResponse.json(updatedTask);
+    // Decrypt task data before sending response
+    const decryptedTask = decryptTaskData(updatedTask);
+
+    return NextResponse.json(decryptedTask);
   } catch (error) {
     console.error(
       `[API UPDATE /api/tasks/${id}] Error updating task:`,

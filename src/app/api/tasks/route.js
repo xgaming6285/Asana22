@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
+import { encryptTaskData, decryptTasksArray } from "../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -51,7 +52,11 @@ export async function GET(request) {
         },
       },
     });
-    return NextResponse.json(tasks);
+
+    // Decrypt tasks before sending to client
+    const decryptedTasks = decryptTasksArray(tasks);
+
+    return NextResponse.json(decryptedTasks);
   } catch (error) {
     console.error("Error fetching tasks:", error);
     return NextResponse.json(
@@ -118,9 +123,15 @@ export async function POST(request) {
       return NextResponse.json({ error: "Forbidden: Not authorized to create tasks in this project" }, { status: 403 });
     }
 
-    const newTaskData = {
+    // Encrypt task data before storing
+    const encryptedTaskData = encryptTaskData({
       title: data.title,
-      description: data.description || "",
+      description: data.description || ""
+    });
+
+    const newTaskData = {
+      title: encryptedTaskData.title,
+      description: encryptedTaskData.description,
       status: data.status || "todo",
       priority: data.priority || "medium",
       startDate: data.startDate ? new Date(data.startDate) : null,
@@ -177,7 +188,10 @@ export async function POST(request) {
       },
     });
 
-    return NextResponse.json(newTask, { status: 201 });
+    // Decrypt task data before sending response
+    const decryptedTask = decryptTasksArray([newTask])[0];
+
+    return NextResponse.json(decryptedTask, { status: 201 });
   } catch (error) {
     console.error("Error creating task:", error);
     return NextResponse.json(
