@@ -23,6 +23,8 @@ const getAllProjects = async () => {
     next: { revalidate: 60 }, // Revalidate every 60 seconds
   });
   const data = await handleResponse(response);
+  
+  // Data is already decrypted in the API route
   setInCache(cacheKey, data, CACHE_DURATION.MEDIUM);
   return data;
 };
@@ -40,6 +42,8 @@ const getProjectById = async (id) => {
     next: { revalidate: 60 }, // Revalidate every 60 seconds
   });
   const data = await handleResponse(response);
+  
+  // Data is already decrypted in the API route
   setInCache(cacheKey, data, CACHE_DURATION.MEDIUM);
   return data;
 };

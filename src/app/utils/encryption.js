@@ -3,12 +3,16 @@ import crypto from 'crypto';
 const ENCRYPT_KEY = process.env.ENCRYPT_KEY;
 const ALGORITHM = 'aes-256-cbc';
 
-if (!ENCRYPT_KEY) {
+// Only check for ENCRYPT_KEY on server-side (when crypto is available)
+if (typeof window === 'undefined' && !ENCRYPT_KEY) {
   throw new Error('ENCRYPT_KEY environment variable is required');
 }
 
 // Create a consistent key from the environment variable
 const createKey = () => {
+  if (typeof window !== 'undefined') {
+    throw new Error('Encryption functions should only be used on server-side');
+  }
   return crypto.createHash('sha256').update(ENCRYPT_KEY).digest();
 };
 
@@ -182,4 +186,63 @@ export function decryptTasksArray(tasks) {
   }
 
   return tasks.map(task => decryptTaskData(task));
+}
+
+/**
+ * Encrypt project data fields
+ * @param {Object} projectData - The project data object
+ * @returns {Object} - Project data with encrypted sensitive fields
+ */
+export function encryptProjectData(projectData) {
+  if (!projectData || typeof projectData !== 'object') {
+    return projectData;
+  }
+
+  const encrypted = { ...projectData };
+
+  // Encrypt sensitive fields
+  if (encrypted.name) {
+    encrypted.name = encrypt(encrypted.name);
+  }
+  if (encrypted.description) {
+    encrypted.description = encrypt(encrypted.description);
+  }
+
+  return encrypted;
+}
+
+/**
+ * Decrypt project data fields
+ * @param {Object} projectData - The project data object with encrypted fields
+ * @returns {Object} - Project data with decrypted sensitive fields
+ */
+export function decryptProjectData(projectData) {
+  if (!projectData || typeof projectData !== 'object') {
+    return projectData;
+  }
+
+  const decrypted = { ...projectData };
+
+  // Decrypt sensitive fields
+  if (decrypted.name) {
+    decrypted.name = decrypt(decrypted.name);
+  }
+  if (decrypted.description) {
+    decrypted.description = decrypt(decrypted.description);
+  }
+
+  return decrypted;
+}
+
+/**
+ * Decrypt an array of project objects
+ * @param {Array} projects - Array of project objects
+ * @returns {Array} - Array of projects with decrypted data
+ */
+export function decryptProjectsArray(projects) {
+  if (!Array.isArray(projects)) {
+    return projects;
+  }
+
+  return projects.map(project => decryptProjectData(project));
 } 

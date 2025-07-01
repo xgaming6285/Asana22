@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@clerk/nextjs/server";
+import { encryptProjectData, decryptProjectData } from "../../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -14,7 +15,10 @@ export async function GET(request, { params }) {
     if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
-    return NextResponse.json(project);
+    
+    // Decrypt project data before returning
+    const decryptedProject = decryptProjectData(project);
+    return NextResponse.json(decryptedProject);
   } catch (error) {
     console.error(`Error fetching project ${id}:`, error);
     return NextResponse.json(
@@ -64,14 +68,24 @@ export async function PUT(request, { params }) {
     }
 
     const data = await request.json();
+    
+    // Encrypt project data before updating
+    const encryptedProjectData = encryptProjectData({
+      name: data.name,
+      description: data.description,
+    });
+    
     const updatedProject = await prisma.project.update({
       where: { id: parseInt(id) },
       data: {
-        name: data.name,
-        description: data.description,
+        name: encryptedProjectData.name,
+        description: encryptedProjectData.description,
       },
     });
-    return NextResponse.json(updatedProject);
+    
+    // Decrypt project data before returning
+    const decryptedProject = decryptProjectData(updatedProject);
+    return NextResponse.json(decryptedProject);
   } catch (error) {
     console.error(`Error updating project ${id}:`, error);
     return NextResponse.json(

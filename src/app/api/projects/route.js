@@ -1,7 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
 import { createApiResponse, withErrorHandling } from "../../utils/apiOptimizer";
-import { encryptGoalData, decryptGoalsArray } from "../../utils/encryption.js";
+import { encryptGoalData, decryptGoalsArray, encryptProjectData, decryptProjectsArray } from "../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -92,8 +92,9 @@ export async function GET(request) {
       },
     });
 
-    // Add current user's role and permissions to each project
-    const projectsWithUserRole = projects.map(project => {
+    // Decrypt projects and add current user's role and permissions to each project
+    const decryptedProjects = decryptProjectsArray(projects);
+    const projectsWithUserRole = decryptedProjects.map(project => {
       const currentUserMembership = project.projectMemberships.find(
         membership => membership.userId === dbUser.id
       );
@@ -151,11 +152,16 @@ export async function POST(request) {
 
     // Create project, membership, and optionally a goal in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Create the project
+      // 1. Encrypt project data and create the project
+      const encryptedProjectData = encryptProjectData({
+        name: name.trim(),
+        description: description?.trim() || null,
+      });
+      
       const project = await tx.project.create({
         data: {
-          name: name.trim(),
-          description: description?.trim() || null,
+          name: encryptedProjectData.name,
+          description: encryptedProjectData.description,
         },
       });
 

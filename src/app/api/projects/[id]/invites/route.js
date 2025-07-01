@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@clerk/nextjs/server";
+import { decryptProjectData } from "../../../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -55,7 +56,13 @@ export async function GET(request, { params }) {
       },
     });
 
-    return NextResponse.json(invitations);
+    // Decrypt project data in invitations
+    const decryptedInvitations = invitations.map(invitation => ({
+      ...invitation,
+      project: decryptProjectData(invitation.project)
+    }));
+
+    return NextResponse.json(decryptedInvitations);
   } catch (error) {
     console.error("Error fetching project invitations:", error);
     return NextResponse.json(
@@ -167,10 +174,16 @@ export async function POST(request, { params }) {
       },
     });
 
+    // Decrypt project data before returning
+    const decryptedInvitation = {
+      ...invitation,
+      project: decryptProjectData(invitation.project)
+    };
+
     // Here you could add email notification logic
     // For example, send an email to the invited user
 
-    return NextResponse.json(invitation);
+    return NextResponse.json(decryptedInvitation);
   } catch (error) {
     console.error("Error creating invitation:", error);
     if (error.code === "P2002") {
