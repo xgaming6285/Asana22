@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { SignUp, SignedIn, SignedOut } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import LoadingSpinner from "./components/LoadingSpinner";
 
-export default function Home() {
+// Helper component to handle the redirect
+function RedirectToDashboard() {
   const router = useRouter();
-
   useEffect(() => {
-    // Redirect to dashboard
     router.replace('/dashboard');
   }, [router]);
 
@@ -21,3 +21,22 @@ export default function Home() {
     </div>
   );
 }
+
+export default function Home() {
+  return (
+    <>
+      <SignedIn>
+        <RedirectToDashboard />
+      </SignedIn>
+      <SignedOut>
+        <div className="min-h-screen flex items-center justify-center">
+          <SignUp 
+            routing="hash"
+            afterSignUpUrl="/dashboard" 
+            signInUrl="/sign-in"
+          />
+        </div>
+      </SignedOut>
+    </>
+  );
+} 

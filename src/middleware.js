@@ -14,7 +14,7 @@ export default clerkMiddleware({
    * If you had other public pages (e.g., a landing page, a public blog),
    * you would list their paths here, for example: `publicRoutes: ['/', '/blog/:path*']`.
    */
-  publicRoutes: [],
+  publicRoutes: ["/"],
 
   /**
    * Optional: Defines an array of routes that should be ignored by Clerk's
