@@ -18,7 +18,6 @@ import {
   ClockIcon,
   ExclamationTriangleIcon,
   PlayIcon,
-  ChevronRightIcon,
   TrophyIcon,
   FireIcon,
   SparklesIcon,
@@ -346,31 +345,7 @@ const ProjectOverviewPage = () => {
     }
   };
 
-  const handleUpdateGoalStatus = async (goalId, currentStatus) => {
-    try {
-      const newStatus =
-        currentStatus === "not_started"
-          ? "in_progress"
-          : currentStatus === "in_progress"
-            ? "completed"
-            : "not_started";
 
-      const response = await fetch(`/api/goals/${goalId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update goal status");
-      }
-
-      await fetchGoals(projectId);
-    } catch (error) {
-      setGoalFetchError(error.message);
-    }
-  };
 
   if (loading) {
     return (
@@ -664,19 +639,6 @@ const ProjectOverviewPage = () => {
                               style={{ width: `${goals.progress}%` }}
                             ></div>
                           </div>
-                        </div>
-                        
-                        <div className="flex justify-end">
-                          <Button
-                            variant="gradient"
-                            color="teal"
-                            size="sm"
-                            onClick={() => handleUpdateGoalStatus(goals.id, goals.status)}
-                            className="flex items-center gap-2"
-                          >
-                            <ChevronRightIcon className="h-4 w-4" />
-                            Update Status
-                          </Button>
                         </div>
                       </div>
                     </div>

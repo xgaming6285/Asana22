@@ -373,6 +373,7 @@ export default function ProjectLayout({ children }) {
   const navItems = [
     // Project Overview Section
     { name: "Overview", href: `/project/${projectId}/overview`, icon: "📋", section: "Project Overview" },
+    { name: "Goals", href: `/goals`, icon: "🎯", section: "Project Overview" },
     { name: "Dashboard", href: `/project/${projectId}/stats`, icon: "📊", section: "Project Overview" },
 
     // Task Management Section
