@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { decryptUserData } from "../utils/encryption.js";
 const prisma = new PrismaClient();
 
 export async function createFile(data) {
@@ -12,7 +13,7 @@ export async function createFile(data) {
       throw new Error("User not found");
     }
 
-    return await prisma.file.create({
+    const file = await prisma.file.create({
       data: {
         name: data.name,
         url: data.url,
@@ -39,6 +40,12 @@ export async function createFile(data) {
         },
       },
     });
+
+    // Decrypt user data before returning
+    return {
+      ...file,
+      uploader: decryptUserData(file.uploader)
+    };
   } catch (error) {
     console.error("Error in createFile:", error);
     throw error;
@@ -46,7 +53,7 @@ export async function createFile(data) {
 }
 
 export async function getProjectFiles(projectId) {
-  return await prisma.file.findMany({
+  const files = await prisma.file.findMany({
     where: {
       projectId: parseInt(projectId),
     },
@@ -63,6 +70,12 @@ export async function getProjectFiles(projectId) {
       createdAt: "desc",
     },
   });
+
+  // Decrypt user data before returning
+  return files.map(file => ({
+    ...file,
+    uploader: decryptUserData(file.uploader)
+  }));
 }
 
 export async function deleteFile(fileId, clerkId) {
@@ -152,7 +165,7 @@ export async function updateFile(fileId, data, clerkId) {
       throw new Error("Unauthorized to update this file");
     }
 
-    return await prisma.file.update({
+    const updatedFile = await prisma.file.update({
       where: { id: fileId },
       data,
       include: {
@@ -165,6 +178,12 @@ export async function updateFile(fileId, data, clerkId) {
         },
       },
     });
+
+    // Decrypt user data before returning
+    return {
+      ...updatedFile,
+      uploader: decryptUserData(updatedFile.uploader)
+    };
   } catch (error) {
     console.error("Error in updateFile:", error);
     throw error;

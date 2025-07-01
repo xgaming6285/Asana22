@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
+import { decryptUsersArray } from "../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -28,7 +29,10 @@ export async function GET(request) {
             }
         });
 
-        return NextResponse.json(users);
+        // Decrypt user data before returning
+        const decryptedUsers = decryptUsersArray(users);
+
+        return NextResponse.json(decryptedUsers);
 
     } catch (error) {
         console.error("API Users GET Error:", error);

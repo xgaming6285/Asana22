@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
+import { decryptUserData } from "../../../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -60,7 +61,13 @@ export async function GET(request, { params }) {
       },
     });
 
-    return NextResponse.json(messages);
+    // Decrypt user data in messages before returning
+    const decryptedMessages = messages.map(message => ({
+      ...message,
+      user: decryptUserData(message.user)
+    }));
+
+    return NextResponse.json(decryptedMessages);
   } catch (error) {
     console.error("Error fetching messages:", error);
     return NextResponse.json(
@@ -133,7 +140,13 @@ export async function POST(request, { params }) {
       },
     });
 
-    return NextResponse.json(message);
+    // Decrypt user data before returning
+    const decryptedMessage = {
+      ...message,
+      user: decryptUserData(message.user)
+    };
+
+    return NextResponse.json(decryptedMessage);
   } catch (error) {
     console.error("Error creating message:", error);
     return NextResponse.json(

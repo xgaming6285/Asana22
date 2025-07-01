@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@clerk/nextjs/server";
-import { decryptProjectData } from "../../../../utils/encryption.js";
+import { decryptProjectData, encryptUserData, decryptUserData } from "../../../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -56,10 +56,11 @@ export async function GET(request, { params }) {
       },
     });
 
-    // Decrypt project data in invitations
+    // Decrypt project and user data in invitations
     const decryptedInvitations = invitations.map(invitation => ({
       ...invitation,
-      project: decryptProjectData(invitation.project)
+      project: decryptProjectData(invitation.project),
+      user: decryptUserData(invitation.user)
     }));
 
     return NextResponse.json(decryptedInvitations);
@@ -113,11 +114,17 @@ export async function POST(request, { params }) {
 
     if (!user) {
       // Create a new user if they don't exist
+      const encryptedUserData = encryptUserData({
+        email,
+        firstName: "",
+        lastName: "",
+      });
+      
       user = await prisma.user.create({
         data: {
-          email,
-          firstName: "",
-          lastName: "",
+          email: encryptedUserData.email,
+          firstName: encryptedUserData.firstName,
+          lastName: encryptedUserData.lastName,
           clerkId: "", // Empty string for now, will be set when they sign up
         },
       });
@@ -174,10 +181,11 @@ export async function POST(request, { params }) {
       },
     });
 
-    // Decrypt project data before returning
+    // Decrypt project and user data before returning
     const decryptedInvitation = {
       ...invitation,
-      project: decryptProjectData(invitation.project)
+      project: decryptProjectData(invitation.project),
+      user: decryptUserData(invitation.user)
     };
 
     // Here you could add email notification logic

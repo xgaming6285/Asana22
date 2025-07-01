@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
-import { encryptTaskData, decryptTasksArray } from "../../utils/encryption.js";
+import { encryptTaskData, decryptTasksArray, decryptUserData } from "../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -53,8 +53,12 @@ export async function GET(request) {
       },
     });
 
-    // Decrypt tasks before sending to client
-    const decryptedTasks = decryptTasksArray(tasks);
+    // Decrypt tasks and user data before sending to client
+    const decryptedTasks = decryptTasksArray(tasks).map(task => ({
+      ...task,
+      assignee: task.assignee ? decryptUserData(task.assignee) : null,
+      createdBy: task.createdBy ? decryptUserData(task.createdBy) : null
+    }));
 
     return NextResponse.json(decryptedTasks);
   } catch (error) {
@@ -188,8 +192,10 @@ export async function POST(request) {
       },
     });
 
-    // Decrypt task data before sending response
+    // Decrypt task data and user data before sending response
     const decryptedTask = decryptTasksArray([newTask])[0];
+    decryptedTask.assignee = decryptedTask.assignee ? decryptUserData(decryptedTask.assignee) : null;
+    decryptedTask.createdBy = decryptedTask.createdBy ? decryptUserData(decryptedTask.createdBy) : null;
 
     return NextResponse.json(decryptedTask, { status: 201 });
   } catch (error) {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { encryptUserData, decryptUserData } from "../../../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -28,22 +29,33 @@ export async function POST(request, { params }) {
     });
 
     if (!dbUser) {
+      const encryptedUserData = encryptUserData({
+        email: user.emailAddresses[0].emailAddress,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      });
+      
       dbUser = await prisma.user.create({
         data: {
-          email: user.emailAddresses[0].emailAddress,
+          email: encryptedUserData.email,
           clerkId,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName: encryptedUserData.firstName,
+          lastName: encryptedUserData.lastName,
           imageUrl: user.imageUrl,
         },
       });
     } else if (!dbUser.clerkId) {
+      const encryptedUserData = encryptUserData({
+        firstName: user.firstName,
+        lastName: user.lastName,
+      });
+      
       dbUser = await prisma.user.update({
         where: { id: dbUser.id },
         data: {
           clerkId,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName: encryptedUserData.firstName,
+          lastName: encryptedUserData.lastName,
           imageUrl: user.imageUrl,
         },
       });
@@ -92,7 +104,13 @@ export async function POST(request, { params }) {
       },
     });
 
-    return NextResponse.json(updatedMembership);
+    // Decrypt user data before returning
+    const decryptedMembership = {
+      ...updatedMembership,
+      user: decryptUserData(updatedMembership.user)
+    };
+
+    return NextResponse.json(decryptedMembership);
   } catch (error) {
     console.error("Error rejecting invitation:", error);
     if (error.code === "P2025") {

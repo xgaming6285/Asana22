@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@clerk/nextjs/server";
+import { decryptProjectData, decryptUserData } from "../../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -42,7 +43,14 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(invitations);
+    // Decrypt project and user data before returning
+    const decryptedInvitations = invitations.map(invitation => ({
+      ...invitation,
+      project: decryptProjectData(invitation.project),
+      user: decryptUserData(invitation.user)
+    }));
+
+    return NextResponse.json(decryptedInvitations);
   } catch (error) {
     console.error("Error fetching user invitations:", error);
     return NextResponse.json(

@@ -1,6 +1,7 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { PrismaClient } from "@prisma/client";
+import { encryptUserData } from "../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -134,12 +135,19 @@ export async function POST(request) {
 
         const dataToUpsert = {
           clerkId: userData.id,
-
           email: email ?? `placeholder-${userData.id}@example.com`,
           firstName: userData.first_name || null,
           lastName: userData.last_name || null,
           imageUrl: userData.image_url || null,
         };
+
+        // Encrypt user data before storing
+        const encryptedUserData = encryptUserData({
+          email: dataToUpsert.email,
+          firstName: dataToUpsert.firstName,
+          lastName: dataToUpsert.lastName,
+        });
+
         console.log(
           "Webhook Handler: Data prepared for Prisma upsert:",
           dataToUpsert
@@ -147,11 +155,17 @@ export async function POST(request) {
 
         const upsertedUser = await prisma.user.upsert({
           where: { clerkId: userData.id },
-          create: dataToUpsert,
+          create: {
+            clerkId: userData.id,
+            email: encryptedUserData.email,
+            firstName: encryptedUserData.firstName,
+            lastName: encryptedUserData.lastName,
+            imageUrl: userData.image_url || null,
+          },
           update: {
-            email: email ?? undefined,
-            firstName: userData.first_name || null,
-            lastName: userData.last_name || null,
+            email: encryptedUserData.email ?? undefined,
+            firstName: encryptedUserData.firstName || null,
+            lastName: encryptedUserData.lastName || null,
             imageUrl: userData.image_url || null,
             updatedAt: new Date(),
           },

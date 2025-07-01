@@ -8,6 +8,7 @@ import {
 } from "@/app/services/fileService";
 import membershipService from "@/app/services/membershipService";
 import { PrismaClient } from "@prisma/client";
+import { encryptUserData } from "../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -28,12 +29,18 @@ export async function POST(req) {
     });
 
     if (!dbUser) {
+      const encryptedUserData = encryptUserData({
+        email: user.emailAddresses[0].emailAddress,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      });
+      
       dbUser = await prisma.user.create({
         data: {
           clerkId,
-          email: user.emailAddresses[0].emailAddress,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          email: encryptedUserData.email,
+          firstName: encryptedUserData.firstName,
+          lastName: encryptedUserData.lastName,
           imageUrl: user.imageUrl,
         },
       });
@@ -93,12 +100,18 @@ export async function GET(req) {
     });
 
     if (!dbUser) {
+      const encryptedUserData = encryptUserData({
+        email: user.emailAddresses[0].emailAddress,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      });
+      
       dbUser = await prisma.user.create({
         data: {
           clerkId,
-          email: user.emailAddresses[0].emailAddress,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          email: encryptedUserData.email,
+          firstName: encryptedUserData.firstName,
+          lastName: encryptedUserData.lastName,
           imageUrl: user.imageUrl,
         },
       });
@@ -153,12 +166,18 @@ export async function DELETE(req) {
     });
 
     if (!dbUser) {
+      const encryptedUserData = encryptUserData({
+        email: user.emailAddresses[0].emailAddress,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      });
+      
       dbUser = await prisma.user.create({
         data: {
           clerkId,
-          email: user.emailAddresses[0].emailAddress,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          email: encryptedUserData.email,
+          firstName: encryptedUserData.firstName,
+          lastName: encryptedUserData.lastName,
           imageUrl: user.imageUrl,
         },
       });
@@ -202,12 +221,18 @@ export async function PATCH(req) {
     });
 
     if (!dbUser) {
+      const encryptedUserData = encryptUserData({
+        email: user.emailAddresses[0].emailAddress,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      });
+      
       dbUser = await prisma.user.create({
         data: {
           clerkId,
-          email: user.emailAddresses[0].emailAddress,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          email: encryptedUserData.email,
+          firstName: encryptedUserData.firstName,
+          lastName: encryptedUserData.lastName,
           imageUrl: user.imageUrl,
         },
       });

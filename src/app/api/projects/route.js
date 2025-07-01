@@ -1,7 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
 import { createApiResponse, withErrorHandling } from "../../utils/apiOptimizer";
-import { encryptGoalData, decryptGoalsArray, encryptProjectData, decryptProjectsArray } from "../../utils/encryption.js";
+import { encryptGoalData, decryptGoalsArray, encryptProjectData, decryptProjectsArray, encryptUserData, decryptUserData } from "../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -24,12 +24,18 @@ export async function GET(request) {
 
     if (!dbUser) {
       // Create the user if they don't exist
+      const encryptedUserData = encryptUserData({
+        email: user.emailAddresses[0].emailAddress,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      });
+      
       dbUser = await prisma.user.create({
         data: {
           clerkId: clerkUserId,
-          email: user.emailAddresses[0].emailAddress,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          email: encryptedUserData.email,
+          firstName: encryptedUserData.firstName,
+          lastName: encryptedUserData.lastName,
           imageUrl: user.imageUrl,
         },
       });
@@ -105,8 +111,15 @@ export async function GET(request) {
         goal: decryptGoalsArray([linkedGoal.goal])[0]
       }));
       
+      // Decrypt user data in project memberships
+      const decryptedMemberships = project.projectMemberships.map(membership => ({
+        ...membership,
+        user: decryptUserData(membership.user)
+      }));
+      
       return {
         ...project,
+        projectMemberships: decryptedMemberships,
         linkedGoals: decryptedLinkedGoals,
         currentUserRole: currentUserMembership?.role,
         canDelete: currentUserMembership?.role === "CREATOR",

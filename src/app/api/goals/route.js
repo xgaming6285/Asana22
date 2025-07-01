@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
-import { encryptGoalData, decryptGoalsArray } from "../../utils/encryption.js";
+import { encryptGoalData, decryptGoalsArray, decryptUserData } from "../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -131,8 +131,15 @@ export async function GET(request) {
       return { ...goal, canEdit, canDelete };
     });
 
-    // Decrypt goals before sending to client
-    const decryptedGoals = decryptGoalsArray(goalsWithPermissions);
+    // Decrypt goals and user data before sending to client
+    const decryptedGoals = decryptGoalsArray(goalsWithPermissions).map(goal => ({
+      ...goal,
+      owner: goal.owner ? decryptUserData(goal.owner) : null,
+      members: goal.members ? goal.members.map(member => ({
+        ...member,
+        user: decryptUserData(member.user)
+      })) : []
+    }));
 
     return NextResponse.json(decryptedGoals);
 
@@ -236,8 +243,13 @@ export async function POST(request) {
       }
     });
 
-    // Decrypt goal data before sending response
+    // Decrypt goal data and user data before sending response
     const decryptedGoal = decryptGoalsArray([newGoal])[0];
+    decryptedGoal.owner = decryptedGoal.owner ? decryptUserData(decryptedGoal.owner) : null;
+    decryptedGoal.members = decryptedGoal.members ? decryptedGoal.members.map(member => ({
+      ...member,
+      user: decryptUserData(member.user)
+    })) : [];
 
     return NextResponse.json(decryptedGoal, { status: 201 });
 

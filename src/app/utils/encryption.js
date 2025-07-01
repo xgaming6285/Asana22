@@ -245,4 +245,69 @@ export function decryptProjectsArray(projects) {
   }
 
   return projects.map(project => decryptProjectData(project));
+}
+
+/**
+ * Encrypt user data fields
+ * @param {Object} userData - The user data object
+ * @returns {Object} - User data with encrypted sensitive fields
+ */
+export function encryptUserData(userData) {
+  if (!userData || typeof userData !== 'object') {
+    return userData;
+  }
+
+  const encrypted = { ...userData };
+
+  // Encrypt sensitive fields
+  if (encrypted.email) {
+    encrypted.email = encrypt(encrypted.email);
+  }
+  if (encrypted.firstName) {
+    encrypted.firstName = encrypt(encrypted.firstName);
+  }
+  if (encrypted.lastName) {
+    encrypted.lastName = encrypt(encrypted.lastName);
+  }
+
+  return encrypted;
+}
+
+/**
+ * Decrypt user data fields
+ * @param {Object} userData - The user data object with encrypted fields
+ * @returns {Object} - User data with decrypted sensitive fields
+ */
+export function decryptUserData(userData) {
+  if (!userData || typeof userData !== 'object') {
+    return userData;
+  }
+
+  const decrypted = { ...userData };
+
+  // Decrypt sensitive fields
+  if (decrypted.email) {
+    decrypted.email = decrypt(decrypted.email);
+  }
+  if (decrypted.firstName) {
+    decrypted.firstName = decrypt(decrypted.firstName);
+  }
+  if (decrypted.lastName) {
+    decrypted.lastName = decrypt(decrypted.lastName);
+  }
+
+  return decrypted;
+}
+
+/**
+ * Decrypt an array of user objects
+ * @param {Array} users - Array of user objects
+ * @returns {Array} - Array of users with decrypted data
+ */
+export function decryptUsersArray(users) {
+  if (!Array.isArray(users)) {
+    return users;
+  }
+
+  return users.map(user => decryptUserData(user));
 } 

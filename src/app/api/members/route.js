@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
+import { decryptUserData } from "../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -71,15 +72,18 @@ export async function GET(request) {
       },
     });
 
-    const formattedMembers = members.map((membership) => ({
-      id: membership.user.id,
-      clerkId: membership.user.clerkId,
-      email: membership.user.email,
-      firstName: membership.user.firstName,
-      lastName: membership.user.lastName,
-      imageUrl: membership.user.imageUrl,
-      role: membership.role,
-    }));
+    const formattedMembers = members.map((membership) => {
+      const decryptedUser = decryptUserData(membership.user);
+      return {
+        id: decryptedUser.id,
+        clerkId: decryptedUser.clerkId,
+        email: decryptedUser.email,
+        firstName: decryptedUser.firstName,
+        lastName: decryptedUser.lastName,
+        imageUrl: decryptedUser.imageUrl,
+        role: membership.role,
+      };
+    });
 
     return NextResponse.json(formattedMembers);
   } catch (error) {
@@ -186,7 +190,13 @@ export async function POST(request) {
       },
     });
 
-    return NextResponse.json(membership);
+    // Decrypt user data before returning
+    const decryptedMembership = {
+      ...membership,
+      user: decryptUserData(membership.user)
+    };
+
+    return NextResponse.json(decryptedMembership);
   } catch (error) {
     console.error("Error inviting member:", error);
     return NextResponse.json(

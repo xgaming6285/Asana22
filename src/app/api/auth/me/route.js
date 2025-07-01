@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
+import { decryptUserData } from "../../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -27,7 +28,10 @@ export async function GET(request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json(user);
+    // Decrypt user data before returning
+    const decryptedUser = decryptUserData(user);
+
+    return NextResponse.json(decryptedUser);
   } catch (error) {
     console.error("Error fetching current user:", error);
     return NextResponse.json(

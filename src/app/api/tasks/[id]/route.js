@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server"; // Import Clerk auth
 import { PrismaClient } from "@prisma/client";
-import { encryptTaskData, decryptTaskData } from "../../../utils/encryption.js";
+import { encryptTaskData, decryptTaskData, decryptUserData } from "../../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
@@ -118,8 +118,14 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "Forbidden: Not authorized to view this task" }, { status: 403 });
     }
 
-    // Decrypt task data before sending response
+    // Decrypt task data and user data before sending response
     const decryptedTask = decryptTaskData(task);
+    if (decryptedTask.assignee) {
+      decryptedTask.assignee = decryptUserData(decryptedTask.assignee);
+    }
+    if (decryptedTask.createdBy) {
+      decryptedTask.createdBy = decryptUserData(decryptedTask.createdBy);
+    }
 
     return NextResponse.json(decryptedTask);
   } catch (error) {
@@ -257,6 +263,26 @@ async function updateTask(request, params) {
     const updatedTask = await prisma.task.update({
       where: { id: parseInt(id) },
       data: updateData,
+      include: {
+        assignee: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            imageUrl: true,
+          },
+        },
+        createdBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            imageUrl: true,
+          },
+        },
+      },
     });
 
     // **КЛЮЧОВАТА ЧАСТ: Задействане на актуализацията на целите**
@@ -293,8 +319,14 @@ async function updateTask(request, params) {
     );
     await Promise.all(updatePromises); // Изчакваме всички актуализации да приключат
 
-    // Decrypt task data before sending response
+    // Decrypt task data and user data before sending response
     const decryptedTask = decryptTaskData(updatedTask);
+    if (decryptedTask.assignee) {
+      decryptedTask.assignee = decryptUserData(decryptedTask.assignee);
+    }
+    if (decryptedTask.createdBy) {
+      decryptedTask.createdBy = decryptUserData(decryptedTask.createdBy);
+    }
 
     return NextResponse.json(decryptedTask);
   } catch (error) {
