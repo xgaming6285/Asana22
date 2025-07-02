@@ -12,15 +12,15 @@ export default function FieldAwareRonImage({ formType = 'login' }) {
   // Field configurations for different form types
   const fieldConfigs = {
     login: [
-      { id: 'email', selector: '#email', label: 'Email' },
-      { id: 'password', selector: '#password', label: 'Password' }
+      { id: 'email', selector: '#email', label: 'Пиши нещо с @' },
+      { id: 'password', selector: '#password', label: 'Тука внимавай' }
     ],
     register: [
-      { id: 'firstName', selector: '#firstName', label: 'First Name' },
-      { id: 'lastName', selector: '#lastName', label: 'Last Name' },
-      { id: 'email', selector: '#email', label: 'Email' },
-      { id: 'password', selector: '#password', label: 'Password' },
-      { id: 'captcha', selector: '#captcha', label: 'Captcha' }
+      { id: 'firstName', selector: '#firstName', label: 'Е тука си пишеш името, баце' },
+      { id: 'lastName', selector: '#lastName', label: 'А е тука - фамилията' },
+      { id: 'email', selector: '#email', label: 'Пиши нещо с @' },
+      { id: 'password', selector: '#password', label: 'Тука внимавай' },
+      { id: 'captcha', selector: '#captcha', label: 'Айде са да те видиме' }
     ]
   };
 
@@ -203,9 +203,18 @@ export default function FieldAwareRonImage({ formType = 'login' }) {
           />
           
           {/* Speech bubble with field name */}
-          <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-sm font-medium shadow-lg border border-white/50 animate-fade-in">
+          <div className={`absolute left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm text-gray-800 px-3 py-1 text-sm font-medium shadow-lg border border-white/50 animate-fade-in ${
+            activeField === 'firstName' ? '-top-24 text-center leading-tight rounded-lg' : 
+            activeField === 'captcha' ? '-top-24 rounded-full' : '-top-12 rounded-full'
+          }`}>
             <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white/90 rotate-45"></div>
-            {currentFields.find(f => f.id === activeField)?.label || 'Focus here!'}
+            {activeField === 'firstName' ? (
+              <div className="whitespace-pre-line">
+                {'Е тука си пишеш\nимето,\nбаце'}
+              </div>
+            ) : (
+              currentFields.find(f => f.id === activeField)?.label || 'Focus here!'
+            )}
           </div>
         </div>
       )}

@@ -772,12 +772,14 @@ export default function RegisterPage() {
                           <input
                             id="captcha"
                             name="captcha"
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             required
                             value={captchaInput}
                             onChange={handleCaptchaChange}
                             placeholder="?"
-                            className="w-20 px-3 py-2 text-center text-white bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                            className="w-20 px-3 py-2 text-center text-white bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
                           />
                         </div>
                       </div>
