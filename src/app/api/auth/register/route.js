@@ -2,16 +2,35 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
 import { encryptUserData } from '../../../utils/encryption';
+import { validatePassword, validateEmail, sanitizeString } from '../../../utils/validation';
 
 const prisma = new PrismaClient();
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { email, password, firstName, lastName } = body;
+    let { email, password, firstName, lastName } = body;
+
+    // Sanitize inputs
+    email = sanitizeString(email);
+    firstName = sanitizeString(firstName);
+    lastName = sanitizeString(lastName);
 
     if (!email || !password) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
+    }
+
+    // Validate email format
+    if (!validateEmail(email)) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
+    }
+
+    // Validate password strength
+    const passwordErrors = validatePassword(password);
+    if (passwordErrors.length > 0) {
+      return NextResponse.json({ 
+        error: 'Password does not meet security requirements: ' + passwordErrors.join(', ')
+      }, { status: 400 });
     }
 
     // Check if user already exists
@@ -24,7 +43,7 @@ export async function POST(request) {
     }
 
     // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12); // Increased salt rounds for better security
 
     // Encrypt user data before saving
     const encryptedData = encryptUserData({

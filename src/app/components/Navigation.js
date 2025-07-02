@@ -158,6 +158,7 @@ function MobileMenu({ isOpen, onClose }) {
 // Enhanced Main Navigation Component
 export default function Navigation() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
     const pathname = usePathname();
     const isHomePage = pathname === "/";
     const { user, logout } = useAuth();
@@ -186,27 +187,6 @@ export default function Navigation() {
                     {user && (
                         /* Enhanced Desktop Navigation */
                         <nav className="ml-8 hidden lg:flex space-x-2">
-                            <Link
-                                href="/dashboard"
-                                className="group px-4 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-gray-700/50 hover:to-gray-800/50 transition-all duration-200 flex items-center gap-2 hover:scale-105"
-                            >
-                                <div className="w-5 h-5 rounded bg-gray-700/50 group-hover:bg-gradient-to-r group-hover:from-purple-500/20 group-hover:to-blue-500/20 group-hover:scale-110 transition-all duration-200 flex items-center justify-center">
-                                    <svg
-                                        className="w-3 h-3 group-hover:text-white transition-colors"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                        />
-                                    </svg>
-                                </div>
-                                My Profile
-                            </Link>
                         </nav>
                     )}
                 </div>
@@ -257,16 +237,66 @@ export default function Navigation() {
                             )}
 
                             {user && (
-                                <div className="flex items-center gap-4">
-                                    <span className="text-sm font-medium text-gray-300 hidden sm:block">
-                                        {user.firstName || user.email}
-                                    </span>
-                                    <button 
-                                        onClick={logout}
-                                        className="group relative px-3 py-2.5 text-sm font-semibold text-gray-200 bg-gradient-to-r from-red-700/80 to-red-800/80 hover:from-red-600 hover:to-red-700 border border-red-600/50 hover:border-red-500/50 rounded-lg transition-all duration-200 ease-in-out flex items-center gap-2 shadow-lg hover:shadow-xl backdrop-blur-sm hover:scale-105"
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                                        className="group px-4 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-gray-700/50 hover:to-gray-800/50 transition-all duration-200 flex items-center gap-2 hover:scale-105"
                                     >
-                                        Изход
+                                        <div className="w-5 h-5 rounded bg-gray-700/50 group-hover:bg-gradient-to-r group-hover:from-purple-500/20 group-hover:to-blue-500/20 group-hover:scale-110 transition-all duration-200 flex items-center justify-center">
+                                            <svg
+                                                className="w-3 h-3 group-hover:text-white transition-colors"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                                />
+                                            </svg>
+                                        </div>
+                                        My Profile
+                                        <svg
+                                            className={`w-4 h-4 transition-transform duration-200 ${profileDropdownOpen ? 'rotate-180' : ''}`}
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
                                     </button>
+                                    
+                                    {profileDropdownOpen && (
+                                        <>
+                                            <div 
+                                                className="fixed inset-0 z-10" 
+                                                onClick={() => setProfileDropdownOpen(false)}
+                                            ></div>
+                                            <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-20">
+                                                <div className="py-2">
+                                                    <div className="px-4 py-2 border-b border-gray-700">
+                                                        <p className="text-sm font-medium text-white truncate">
+                                                            {user.name || user.firstName || user.email}
+                                                        </p>
+                                                        <p className="text-xs text-gray-400">
+                                                            {user.email}
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            logout();
+                                                            setProfileDropdownOpen(false);
+                                                        }}
+                                                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300 transition-colors duration-200"
+                                                    >
+                                                        Logout
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             )}
                         </>

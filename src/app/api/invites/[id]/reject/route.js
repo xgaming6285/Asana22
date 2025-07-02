@@ -1,19 +1,15 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { getUserIdFromToken } from "../../../../utils/auth.js";
 import { encryptUserData, decryptUserData } from "../../../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
 export async function POST(request, { params }) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const userId = await getUserIdFromToken();
 
     const { id: inviteId } = await params;
-    const user = await currentUser();
 
     if (!inviteId) {
       return NextResponse.json(
@@ -22,51 +18,32 @@ export async function POST(request, { params }) {
       );
     }
 
-    let dbUser = await prisma.user.findFirst({
-      where: {
-        email: user.emailAddresses[0].emailAddress,
+    // Get current user from database
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        imageUrl: true,
       },
     });
 
-    if (!dbUser) {
-      const encryptedUserData = encryptUserData({
-        email: user.emailAddresses[0].emailAddress,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      });
-      
-      dbUser = await prisma.user.create({
-        data: {
-          email: encryptedUserData.email,
-          clerkId,
-          firstName: encryptedUserData.firstName,
-          lastName: encryptedUserData.lastName,
-          imageUrl: user.imageUrl,
-        },
-      });
-    } else if (!dbUser.clerkId) {
-      const encryptedUserData = encryptUserData({
-        firstName: user.firstName,
-        lastName: user.lastName,
-      });
-      
-      dbUser = await prisma.user.update({
-        where: { id: dbUser.id },
-        data: {
-          clerkId,
-          firstName: encryptedUserData.firstName,
-          lastName: encryptedUserData.lastName,
-          imageUrl: user.imageUrl,
-        },
-      });
+    if (!currentUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Decrypt user data to get the actual email
+    const decryptedUser = decryptUserData(currentUser);
+
+    // Find the invitation
     const invitation = await prisma.projectMembership.findFirst({
       where: {
         id: parseInt(inviteId),
         status: "PENDING",
         user: {
-          email: user.emailAddresses[0].emailAddress,
+          email: decryptedUser.email,
         },
       },
     });
@@ -78,6 +55,7 @@ export async function POST(request, { params }) {
       );
     }
 
+    // Update membership status to REJECTED
     const updatedMembership = await prisma.projectMembership.update({
       where: {
         id: parseInt(inviteId),
@@ -98,7 +76,6 @@ export async function POST(request, { params }) {
             email: true,
             firstName: true,
             lastName: true,
-            clerkId: true,
           },
         },
       },

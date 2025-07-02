@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
+import { getUserIdFromToken } from "../../../../../utils/auth.js";
 
 const prisma = new PrismaClient();
 
 // PATCH /api/projects/[id]/messages/[messageId]
 export async function PATCH(req, { params }) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const userId = await getUserIdFromToken();
 
     const { id, messageId } = await params;
     const projectId = parseInt(id);
@@ -24,16 +21,17 @@ export async function PATCH(req, { params }) {
       );
     }
 
-    // Get the internal user ID from Clerk ID
-    const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
+    // Check if user is a member of the project
+    const membership = await prisma.projectMembership.findFirst({
+      where: {
+        userId: userId,
+        projectId: projectId,
+        status: "ACTIVE",
+      },
     });
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found in the system" },
-        { status: 404 }
-      );
+    if (!membership) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get the message and check ownership
@@ -48,7 +46,7 @@ export async function PATCH(req, { params }) {
       return NextResponse.json({ error: "Message not found" }, { status: 404 });
     }
 
-    if (message.userId !== user.id) {
+    if (message.userId !== userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -59,7 +57,7 @@ export async function PATCH(req, { params }) {
       include: {
         user: {
           select: {
-            clerkId: true,
+            id: true,
             firstName: true,
             lastName: true,
             imageUrl: true,
@@ -81,25 +79,10 @@ export async function PATCH(req, { params }) {
 // DELETE /api/projects/[id]/messages/[messageId]
 export async function DELETE(req, { params }) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const userId = await getUserIdFromToken();
 
     const { messageId } = await params;
     const messageIdInt = parseInt(messageId);
-
-    // Get the internal user ID from Clerk ID
-    const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found in the system" },
-        { status: 404 }
-      );
-    }
 
     // Get the message and check ownership
     const message = await prisma.message.findUnique({
@@ -113,7 +96,7 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ error: "Message not found" }, { status: 404 });
     }
 
-    if (message.userId !== user.id) {
+    if (message.userId !== userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

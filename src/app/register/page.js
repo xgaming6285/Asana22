@@ -20,6 +20,28 @@ export default function RegisterPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const validatePassword = (password) => {
+    const errors = [];
+    
+    if (password.length < 6) {
+      errors.push('Паролата трябва да бъде поне 6 символа');
+    }
+    
+    if (!/[A-Z]/.test(password)) {
+      errors.push('Паролата трябва да съдържа поне една главна буква');
+    }
+    
+    if (!/[a-z]/.test(password)) {
+      errors.push('Паролата трябва да съдържа поне една малка буква');
+    }
+    
+    if (!/[0-9]/.test(password)) {
+      errors.push('Паролата трябва да съдържа поне една цифра');
+    }
+    
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -27,6 +49,14 @@ export default function RegisterPage() {
 
     if (!formData.email || !formData.password) {
       setError('Моля, попълнете имейл и парола.');
+      setLoading(false);
+      return;
+    }
+
+    // Validate password
+    const passwordErrors = validatePassword(formData.password);
+    if (passwordErrors.length > 0) {
+      setError(passwordErrors.join('. '));
       setLoading(false);
       return;
     }
@@ -55,6 +85,16 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  const getPasswordStrength = (password) => {
+    const errors = validatePassword(password);
+    if (password.length === 0) return { strength: 'none', color: 'gray' };
+    if (errors.length === 0) return { strength: 'Силна', color: 'green' };
+    if (errors.length <= 2) return { strength: 'Средна', color: 'yellow' };
+    return { strength: 'Слаба', color: 'red' };
+  };
+
+  const passwordStrength = getPasswordStrength(formData.password);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -116,6 +156,23 @@ export default function RegisterPage() {
               onChange={handleChange}
               className="w-full px-3 py-2 mt-1 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
+            {formData.password && (
+              <div className="mt-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">Сила на паролата:</span>
+                  <span className={`text-xs font-medium ${
+                    passwordStrength.color === 'green' ? 'text-green-400' :
+                    passwordStrength.color === 'yellow' ? 'text-yellow-400' :
+                    passwordStrength.color === 'red' ? 'text-red-400' : 'text-gray-400'
+                  }`}>
+                    {passwordStrength.strength}
+                  </span>
+                </div>
+                <div className="mt-1 text-xs text-gray-500">
+                  Изисквания: минимум 6 символа, главна буква, малка буква, цифра
+                </div>
+              </div>
+            )}
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
           <div>
