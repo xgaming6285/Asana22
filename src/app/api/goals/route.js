@@ -1,21 +1,13 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
 import { encryptGoalData, decryptGoalsArray, decryptUserData } from "../../utils/encryption.js";
+import { getUserIdFromToken } from "../../utils/auth.js";
 
 const prisma = new PrismaClient();
 
 export async function GET(request) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({ where: { clerkId } });
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+    const userId = await getUserIdFromToken();
 
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type");
@@ -27,7 +19,7 @@ export async function GET(request) {
       const projectMembership = await prisma.projectMembership.findFirst({
         where: {
           projectId: parseInt(projectId),
-          userId: user.id,
+          userId: userId,
           status: 'ACTIVE'
         }
       });
@@ -48,16 +40,16 @@ export async function GET(request) {
         whereClause = {
           type: 'PERSONAL',
           OR: [
-            { ownerId: user.id },
-            { members: { some: { userId: user.id } } }
+            { ownerId: userId },
+            { members: { some: { userId: userId } } }
           ]
         };
       } else if (type === 'TEAM' || type === 'COMPANY') {
         whereClause = {
           type: type,
           OR: [
-            { ownerId: user.id },
-            { members: { some: { userId: user.id } } }
+            { ownerId: userId },
+            { members: { some: { userId: userId } } }
           ]
         };
       }
@@ -78,7 +70,7 @@ export async function GET(request) {
               include: {
                 projectMemberships: {
                   where: {
-                    userId: user.id,
+                    userId: userId,
                     status: 'ACTIVE'
                   }
                 }
@@ -93,35 +85,35 @@ export async function GET(request) {
     });
 
     const goalsWithPermissions = goals.map(goal => {
-      const userMembership = goal.members.find(m => m.userId === user.id);
+      const userMembership = goal.members.find(m => m.userId === userId);
       
       let canEdit = false;
       let canDelete = false;
       
       if (projectId) {
-        canEdit = goal.ownerId === user.id || 
+        canEdit = goal.ownerId === userId || 
                  (userMembership && (userMembership.role === 'EDITOR' || goal.type === 'TEAM'));
         // For deletion: Only goal owner or project admin/creator can delete (consistent with task logic)
-        canDelete = goal.ownerId === user.id;
+        canDelete = goal.ownerId === userId;
         // Check if user is project admin/creator for linked goals
         if (!canDelete && goal.linkedProjects.length > 0) {
           const hasAdminAccess = goal.linkedProjects.some(linkedProject => 
             linkedProject.project.projectMemberships?.some(membership => 
-              membership.userId === user.id && (membership.role === 'ADMIN' || membership.role === 'CREATOR')
+              membership.userId === userId && (membership.role === 'ADMIN' || membership.role === 'CREATOR')
             )
           );
           canDelete = hasAdminAccess;
         }
       } else {
-        canEdit = goal.ownerId === user.id ||
+        canEdit = goal.ownerId === userId ||
                  (goal.type === 'TEAM' && userMembership?.role === 'EDITOR');
         // For deletion: Only goal owner can delete (consistent with task logic)
-        canDelete = goal.ownerId === user.id;
+        canDelete = goal.ownerId === userId;
         // Check if user is project admin/creator for any linked goals
         if (!canDelete && goal.linkedProjects.length > 0) {
           const hasAdminAccess = goal.linkedProjects.some(linkedProject => 
             linkedProject.project.projectMemberships?.some(membership => 
-              membership.userId === user.id && (membership.role === 'ADMIN' || membership.role === 'CREATOR')
+              membership.userId === userId && (membership.role === 'ADMIN' || membership.role === 'CREATOR')
             )
           );
           canDelete = hasAdminAccess;
@@ -151,15 +143,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({ where: { clerkId } });
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+    const userId = await getUserIdFromToken();
 
     const { 
       title, 
@@ -181,7 +165,7 @@ export async function POST(request) {
       const projectMembership = await prisma.projectMembership.findFirst({
         where: {
           projectId: parseInt(projectId),
-          userId: user.id,
+          userId: userId,
           status: 'ACTIVE'
         }
       });
@@ -191,7 +175,7 @@ export async function POST(request) {
       }
     }
 
-    const finalOwnerId = ownerId ? parseInt(ownerId) : user.id;
+    const finalOwnerId = ownerId ? parseInt(ownerId) : userId;
     const finalType = type || (projectId ? 'TEAM' : 'PERSONAL');
 
     // Encrypt goal data before storing

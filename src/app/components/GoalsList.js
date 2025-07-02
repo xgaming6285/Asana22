@@ -35,7 +35,22 @@ const GoalDetails = ({ goal }) => (
                     {goal.members && goal.members.length > 0 ? (
                         goal.members.map(member => (
                             <div key={member.userId} className="flex items-center gap-3 bg-gray-700/50 p-2 rounded-md">
-                                <Image src={member.user.imageUrl} alt={`${member.user.firstName} ${member.user.lastName}`} width={32} height={32} className="w-8 h-8 rounded-full" />
+                                {member.user.imageUrl ? (
+                                    <Image
+                                        src={member.user.imageUrl}
+                                        alt={`${member.user.firstName} ${member.user.lastName}`}
+                                        width={32}
+                                        height={32}
+                                        className="w-8 h-8 rounded-full"
+                                    />
+                                ) : (
+                                    <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center">
+                                        <span className="text-xs font-semibold text-white">
+                                            {member.user.firstName?.[0]}
+                                            {member.user.lastName?.[0]}
+                                        </span>
+                                    </div>
+                                )}
                                 <span className="text-sm text-gray-200">{member.user.firstName} {member.user.lastName}</span>
                             </div>
                         ))

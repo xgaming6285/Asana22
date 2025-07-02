@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { auth, currentUser } from "@clerk/nextjs/server";
 import {
   createFile,
   getProjectFiles,
@@ -7,44 +6,11 @@ import {
   updateFile,
 } from "@/app/services/fileService";
 import membershipService from "@/app/services/membershipService";
-import { PrismaClient } from "@prisma/client";
-import { encryptUserData } from "../../utils/encryption.js";
-
-const prisma = new PrismaClient();
+import { getUserIdFromToken } from "../../utils/auth.js";
 
 export async function POST(req) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await currentUser();
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 401 });
-    }
-
-    let dbUser = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
-    if (!dbUser) {
-      const encryptedUserData = encryptUserData({
-        email: user.emailAddresses[0].emailAddress,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      });
-      
-      dbUser = await prisma.user.create({
-        data: {
-          clerkId,
-          email: encryptedUserData.email,
-          firstName: encryptedUserData.firstName,
-          lastName: encryptedUserData.lastName,
-          imageUrl: user.imageUrl,
-        },
-      });
-    }
+    const userId = await getUserIdFromToken();
 
     const data = await req.json();
     const { projectId } = data;
@@ -58,7 +24,7 @@ export async function POST(req) {
 
     const membership = await membershipService.getProjectMember(
       parseInt(projectId),
-      clerkId
+      userId
     );
     if (!membership) {
       return NextResponse.json(
@@ -70,7 +36,7 @@ export async function POST(req) {
     const file = await createFile({
       ...data,
       url: `https://example.com/files/${Date.now()}-${data.name}`,
-      uploaderId: clerkId,
+      uploaderId: userId,
     });
 
     return NextResponse.json(file);
@@ -85,37 +51,7 @@ export async function POST(req) {
 
 export async function GET(req) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await currentUser();
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 401 });
-    }
-
-    let dbUser = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
-    if (!dbUser) {
-      const encryptedUserData = encryptUserData({
-        email: user.emailAddresses[0].emailAddress,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      });
-      
-      dbUser = await prisma.user.create({
-        data: {
-          clerkId,
-          email: encryptedUserData.email,
-          firstName: encryptedUserData.firstName,
-          lastName: encryptedUserData.lastName,
-          imageUrl: user.imageUrl,
-        },
-      });
-    }
+    const userId = await getUserIdFromToken();
 
     const { searchParams } = new URL(req.url);
     const projectId = searchParams.get("projectId");
@@ -129,7 +65,7 @@ export async function GET(req) {
 
     const membership = await membershipService.getProjectMember(
       parseInt(projectId),
-      clerkId
+      userId
     );
     if (!membership) {
       return NextResponse.json(
@@ -151,37 +87,7 @@ export async function GET(req) {
 
 export async function DELETE(req) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await currentUser();
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 401 });
-    }
-
-    let dbUser = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
-    if (!dbUser) {
-      const encryptedUserData = encryptUserData({
-        email: user.emailAddresses[0].emailAddress,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      });
-      
-      dbUser = await prisma.user.create({
-        data: {
-          clerkId,
-          email: encryptedUserData.email,
-          firstName: encryptedUserData.firstName,
-          lastName: encryptedUserData.lastName,
-          imageUrl: user.imageUrl,
-        },
-      });
-    }
+    const userId = await getUserIdFromToken();
 
     const { searchParams } = new URL(req.url);
     const fileId = searchParams.get("fileId");
@@ -193,7 +99,7 @@ export async function DELETE(req) {
       );
     }
 
-    await deleteFile(parseInt(fileId), clerkId);
+    await deleteFile(parseInt(fileId), userId);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting file:", error);
@@ -206,37 +112,7 @@ export async function DELETE(req) {
 
 export async function PATCH(req) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await currentUser();
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 401 });
-    }
-
-    let dbUser = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
-    if (!dbUser) {
-      const encryptedUserData = encryptUserData({
-        email: user.emailAddresses[0].emailAddress,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      });
-      
-      dbUser = await prisma.user.create({
-        data: {
-          clerkId,
-          email: encryptedUserData.email,
-          firstName: encryptedUserData.firstName,
-          lastName: encryptedUserData.lastName,
-          imageUrl: user.imageUrl,
-        },
-      });
-    }
+    const userId = await getUserIdFromToken();
 
     const data = await req.json();
     const { fileId, ...updateData } = data;
@@ -248,7 +124,7 @@ export async function PATCH(req) {
       );
     }
 
-    const updatedFile = await updateFile(parseInt(fileId), updateData, clerkId);
+    const updatedFile = await updateFile(parseInt(fileId), updateData, userId);
     return NextResponse.json(updatedFile);
   } catch (error) {
     console.error("Error updating file:", error);

@@ -3,7 +3,7 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useUser, useAuth } from "@clerk/nextjs";
+import { useAuth } from "../context/AuthContext";
 import useFetch from "../hooks/useFetch";
 import LoadingSpinner, { SkeletonLoader } from "../components/LoadingSpinner";
 import PendingInvitations from "../components/PendingInvitations";
@@ -2165,13 +2165,15 @@ const getThemeColors = (theme = 'default') => {
 };
 
 export default function Home() {
-  const [projectForm, setProjectForm] = useState({ name: "", description: "" });
+  const router = useRouter();
+  const { user } = useAuth(); // Replaced Clerk's useUser
+  const [isFormVisible, setFormVisible] = useState(false);
+  const [projectForm, setProjectForm] = useState({ name: "", description: "", goal: {} });
   const [projectError, setProjectError] = useState("");
   const [creatingProject, setCreatingProject] = useState(false);
-  const [showProjectForm, setShowProjectForm] = useState(false);
   const [viewMode, setViewMode] = useState('grid');
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('updated');
+  const [sortBy, setSortBy] = useState('updatedAt_desc');
   const [mounted, setMounted] = useState(false);
   const [dashboardPreferences, setDashboardPreferences] = useState({
     widgets: {
@@ -2185,9 +2187,6 @@ export default function Home() {
     theme: 'default',
     compactMode: false
   });
-  const router = useRouter();
-  const { user } = useUser();
-  const { isSignedIn, isLoaded } = useAuth();
 
   // Set mounted state
   useEffect(() => {
@@ -2220,7 +2219,7 @@ export default function Home() {
 
   // Use our custom hook for data fetching
   const { data: fetchedProjects, error: projectsError, isLoading: loadingProjects } = useFetch(
-    isLoaded && isSignedIn ? '/api/projects' : null,
+    user ? '/api/projects' : null,
     {
       revalidateOnFocus: true,
       onError: (error) => {
@@ -2289,7 +2288,7 @@ export default function Home() {
     }
   };
 
-  if (!isLoaded) {
+  if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900">
         <LoadingSpinner size="lg" />
@@ -2331,11 +2330,11 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {!showProjectForm && projects?.length === 0 && (
-              <EmptyState onCreateProjectClick={() => setShowProjectForm(true)} />
+            {!isFormVisible && projects?.length === 0 && (
+              <EmptyState onCreateProjectClick={() => setFormVisible(true)} />
             )}
 
-            {!showProjectForm && projects?.length > 0 && (
+            {!isFormVisible && projects?.length > 0 && (
               <div className="space-y-3">
                 {/* Enhanced Hero Header - Reduced spacing */}
                 <div className="space-y-2 py-2">
@@ -2366,7 +2365,7 @@ export default function Home() {
                         <div className="flex items-center justify-between mb-4">
                           <h2 className="text-xl font-semibold text-white">Dashboard Overview</h2>
                           <button
-                            onClick={() => setShowProjectForm(true)}
+                            onClick={() => setFormVisible(true)}
                             className={`group relative overflow-hidden glass-morphism bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/20 hover:${themeColors.border.replace('border-', 'border-')} text-white font-semibold px-5 py-2.5 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:${themeColors.shadow} focus:outline-none focus:ring-2 focus:${themeColors.border.replace('border-', 'ring-')} flex items-center space-x-2 h-fit`}
                           >
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl"></div>
@@ -2487,8 +2486,8 @@ export default function Home() {
                           onChange={(e) => setSortBy(e.target.value)}
                           className="appearance-none bg-gray-700/50 border border-gray-600/50 rounded-xl px-3 py-2 pr-8 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-200 backdrop-blur-sm cursor-pointer hover:bg-gray-700"
                         >
-                          <option value="updated">Recent</option>
-                          <option value="created">Created</option>
+                          <option value="updatedAt_desc">Recent</option>
+                          <option value="createdAt_asc">Created</option>
                           <option value="name">Name</option>
                         </select>
                         <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
@@ -2619,13 +2618,13 @@ export default function Home() {
               </div>
             )}
 
-            {showProjectForm && (
+            {isFormVisible && (
               <div className="max-w-4xl mx-auto">
                 <div className="flex items-center justify-between mb-4">
                   <h1 className="text-2xl font-bold text-white">Create New Project</h1>
                   <button
                     onClick={() => {
-                      setShowProjectForm(false);
+                      setFormVisible(false);
                       setProjectForm({ name: "", description: "" });
                       setProjectError("");
                     }}

@@ -36,8 +36,8 @@ const getCurrentUserRole = async (projectId) => {
     console.log("Debug - Current user:", currentUser);
     console.log("Debug - Members:", members);
     
-    // Find current user in members list - match by clerkId
-    const userMembership = members.find(member => member.clerkId === currentUser.clerkId);
+    // Find current user in members list - match by id
+    const userMembership = members.find(member => member.userId === currentUser.id);
     console.log("Debug - Found membership:", userMembership);
     
     return userMembership ? userMembership.role : null;
@@ -67,20 +67,11 @@ const membershipService = {
   // Get a specific project member
   async getProjectMember(projectId, userId) {
     try {
-      // First, get the user's internal ID using their Clerk ID
-      const user = await prisma.user.findUnique({
-        where: { clerkId: userId.toString() },
-      });
-
-      if (!user) {
-        return null;
-      }
-
       // Then find the membership using the internal ID
       return await prisma.projectMembership.findFirst({
         where: {
           projectId: parseInt(projectId),
-          userId: user.id,
+          userId: userId,
           status: "ACTIVE",
         },
       });

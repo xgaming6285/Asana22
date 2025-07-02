@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getUserIdFromToken } from "@/app/utils/auth";
 import { PrismaClient } from "@prisma/client";
 import { decryptUsersArray } from "../../utils/encryption.js";
 
@@ -8,9 +8,9 @@ const prisma = new PrismaClient();
 // Тази функция ще връща списък с всички потребители в системата
 export async function GET(request) {
     try {
-        const { userId: clerkId } = await auth();
+        const userId = await getUserIdFromToken();
         // Проверяваме дали потребителят, който прави заявката, е логнат
-        if (!clerkId) {
+        if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 

@@ -12,9 +12,6 @@
     "analyze": "cross-env ANALYZE=true next build"
   },
   "dependencies": {
-    "@clerk/elements": "^0.23.31",
-    "@clerk/nextjs": "^6.20.1",
-    "@clerk/themes": "^2.2.48",
     "@headlessui/react": "^2.2.4",
     "@heroicons/react": "^2.2.0",
     "@material-tailwind/react": "^2.1.10",
@@ -23,8 +20,11 @@
     "@tailwindcss/line-clamp": "^0.4.4",
     "@tanstack/react-query": "^5.62.12",
     "@tanstack/react-query-devtools": "^5.62.12",
+    "bcryptjs": "^3.0.2",
     "date-fns": "^4.1.0",
     "dotenv": "^17.0.0",
+    "jose": "^6.0.11",
+    "jsonwebtoken": "^9.0.2",
     "next": "15.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

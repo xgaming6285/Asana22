@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getUserIdFromToken } from "@/app/utils/auth";
 import { PrismaClient } from "@prisma/client";
 import { encryptGoalData, decryptGoalData } from "../../../utils/encryption.js";
 
@@ -10,14 +10,9 @@ export async function PATCH(request, context) {
     const url = new URL(request.url);
     const goalId = parseInt(url.pathname.split('/')[3]);
 
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
+    const userId = await getUserIdFromToken();
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({ where: { clerkId } });
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const dataToUpdate = await request.json();
@@ -36,7 +31,7 @@ export async function PATCH(request, context) {
               include: {
                 projectMemberships: {
                   where: {
-                    userId: user.id,
+                    userId: userId,
                     status: 'ACTIVE'
                   }
                 }
@@ -51,11 +46,11 @@ export async function PATCH(request, context) {
       return NextResponse.json({ error: "Goal not found" }, { status: 404 });
     }
 
-    const userMembership = goal.members.find(m => m.userId === user.id);
+    const userMembership = goal.members.find(m => m.userId === userId);
     
     let canEdit = false;
     
-    if (goal.ownerId === user.id) {
+    if (goal.ownerId === userId) {
       canEdit = true;
     }
     else if (goal.type === 'TEAM' && userMembership?.role === 'EDITOR') {
@@ -112,14 +107,9 @@ export async function DELETE(request, context) {
     const url = new URL(request.url);
     const goalId = parseInt(url.pathname.split('/')[3]);
 
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
+    const userId = await getUserIdFromToken();
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({ where: { clerkId } });
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     if (isNaN(goalId)) {
@@ -136,7 +126,7 @@ export async function DELETE(request, context) {
               include: {
                 projectMemberships: {
                   where: {
-                    userId: user.id,
+                    userId: userId,
                     status: 'ACTIVE'
                   }
                 }
@@ -155,7 +145,7 @@ export async function DELETE(request, context) {
     
     // UPDATED LOGIC: Only goal owner can delete (consistent with task deletion logic)
     // Goal members/editors can only modify, not delete (same as assigned users for tasks)
-    if (goal.ownerId === user.id) {
+    if (goal.ownerId === userId) {
       canDelete = true;
     }
     // For linked goals, only project ADMIN/CREATOR can delete (same as task deletion)

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server"; // Import Clerk auth
+import { getUserIdFromToken } from "../../../utils/auth";
 import { PrismaClient } from "@prisma/client";
 import { encryptTaskData, decryptTaskData, decryptUserData } from "../../../utils/encryption.js";
 
@@ -72,8 +72,7 @@ async function updateGoalProgress(goalId) {
 export async function GET(request, { params }) {
   const { id } = await params; // Fixed: await params
   try {
-    // АУТЕНТИКАЦИЯ - ДОБАВЕНА
-    const { userId } = await auth();
+    const userId = await getUserIdFromToken();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -104,15 +103,10 @@ export async function GET(request, { params }) {
     }
 
     // АВТОРИЗАЦИЯ - ДОБАВЕНА: Проверка дали потребителят е член на проекта или assignee
-    const user = await prisma.user.findUnique({ where: { clerkId: userId } });
-    if (!user) {
-      return NextResponse.json({ error: "User not found in system" }, { status: 404 });
-    }
-
     const isProjectMember = task.project?.projectMemberships.some(
-      (member) => member.userId === user.id && member.status === "ACTIVE"
+      (member) => member.userId === userId && member.status === "ACTIVE"
     );
-    const isAssignee = task.assigneeId === user.id;
+    const isAssignee = task.assigneeId === userId;
 
     if (!isProjectMember && !isAssignee) {
       return NextResponse.json({ error: "Forbidden: Not authorized to view this task" }, { status: 403 });
@@ -152,8 +146,7 @@ export async function PUT(request, { params }) {
 async function updateTask(request, params) {
   const { id } = await params; // Fixed: await params
   try {
-    // АУТЕНТИКАЦИЯ - ДОБАВЕНА
-    const { userId } = await auth();
+    const userId = await getUserIdFromToken();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -180,15 +173,10 @@ async function updateTask(request, params) {
     }
 
     // АВТОРИЗАЦИЯ - ДОБАВЕНА: Проверка дали потребителят има право да актуализира
-    const user = await prisma.user.findUnique({ where: { clerkId: userId } });
-    if (!user) {
-      return NextResponse.json({ error: "User not found in system" }, { status: 404 });
-    }
-
     const isProjectAdminOrCreator = originalTask.project?.projectMemberships.some(
-      (member) => member.userId === user.id && (member.role === "ADMIN" || member.role === "CREATOR")
+      (member) => member.userId === userId && (member.role === "ADMIN" || member.role === "CREATOR")
     );
-    const isAssignee = originalTask.assigneeId === user.id;
+    const isAssignee = originalTask.assigneeId === userId;
 
     // Например: Само admin/creator на проекта или assignee може да актуализира задачата
     if (!isProjectAdminOrCreator && !isAssignee) {
@@ -346,8 +334,7 @@ async function updateTask(request, params) {
 export async function DELETE(request, { params }) {
   const { id } = await params; // Fixed: await params
   try {
-    // АУТЕНТИКАЦИЯ - ДОБАВЕНА
-    const { userId } = await auth();
+    const userId = await getUserIdFromToken();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -371,16 +358,11 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ message: "Task not found" }, { status: 404 });
     }
 
-    // АВТОРИЗАЦИЯ - ДОБАВЕНА: Проверка дали потребителят има право да изтрие
-    const user = await prisma.user.findUnique({ where: { clerkId: userId } });
-    if (!user) {
-      return NextResponse.json({ error: "User not found in system" }, { status: 404 });
-    }
-
+    // АВТОРИЗАЦИЯ: Само admin/creator на проекта или assignee може да изтрие задачата
     const isProjectAdminOrCreator = taskToDelete.project?.projectMemberships.some(
-      (member) => member.userId === user.id && (member.role === "ADMIN" || member.role === "CREATOR")
+      (member) => member.userId === userId && (member.role === "ADMIN" || member.role === "CREATOR")
     );
-    const isTaskCreator = taskToDelete.createdById === user.id;
+    const isTaskCreator = taskToDelete.createdById === userId;
 
     // Allow deletion if user is project admin/creator OR if user created the task
     if (!isProjectAdminOrCreator && !isTaskCreator) {
