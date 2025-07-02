@@ -48,7 +48,6 @@ export async function GET(request) {
         user: {
           select: {
             id: true,
-            clerkId: true,
             email: true,
             firstName: true,
             lastName: true,
@@ -62,12 +61,12 @@ export async function GET(request) {
       const decryptedUser = decryptUserData(membership.user);
       return {
         id: decryptedUser.id,
-        clerkId: decryptedUser.clerkId,
         email: decryptedUser.email,
         firstName: decryptedUser.firstName,
         lastName: decryptedUser.lastName,
         imageUrl: decryptedUser.imageUrl,
         role: membership.role,
+        userId: membership.userId,
       };
     });
 
@@ -111,9 +110,8 @@ export async function POST(request) {
       );
     }
 
-    const invitedUser = await prisma.user.findUnique({
-      where: { email },
-    });
+    const allUsers = await prisma.user.findMany();
+    const invitedUser = allUsers.find(u => decryptUserData(u).email === email);
 
     if (!invitedUser) {
       return NextResponse.json(

@@ -293,20 +293,7 @@ function DesktopSidebar({ navItems, pathname, isCollapsed, onToggleCollapse }) {
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {/* Account Settings at the bottom */}
         {user && (
-          <div className="p-6 border-t border-white/10 animate-fade-in" style={{ animationDelay: '500ms' }}>
-            <Link
-              href="/dashboard"
-              className={`group relative flex items-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-[1.02] text-gray-300 hover:bg-gradient-to-r hover:from-gray-700/50 hover:to-gray-800/50 hover:text-white hover:shadow-lg ${isCollapsed ? "justify-center p-3" : "px-4 py-4"}`}
-              title={isCollapsed ? "My Profile" : undefined}
-            >
-              <div className={`relative flex items-center justify-center ${isCollapsed ? 'w-8 h-8' : 'w-10 h-10'} rounded-lg transition-all duration-300 bg-gray-700/50 group-hover:bg-gradient-to-r group-hover:from-emerald-500/20 group-hover:to-teal-500/20 group-hover:scale-110 ${!isCollapsed && "mr-4"}`}>
-                <span className={`text-lg transition-all duration-300 text-gray-400 group-hover:text-white`}>👤</span>
-              </div>
-              {!isCollapsed && (
-                <span className="font-medium">My Profile</span>
-              )}
-            </Link>
-          </div>
+          <div className="p-6 border-t border-white/10 animate-fade-in" style={{ animationDelay: '500ms' }}></div>
         )}
       </div>
     </aside>
