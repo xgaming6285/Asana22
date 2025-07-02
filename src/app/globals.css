@@ -1,6 +1,21 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap');
 
+/* Custom cursor throughout the entire application */
+* {
+  cursor: url('/dildo%20(1).png'), auto !important;
+}
+
+/* Ensure cursor applies to all interactive elements */
+button, a, input, textarea, select, [role="button"], [tabindex] {
+  cursor: url('/dildo%20(1).png'), pointer !important;
+}
+
+/* Apply to body and html as well */
+html, body {
+  cursor: url('/dildo%20(1).png'), auto !important;
+}
+
 /* Custom curved header styling */
 .curved-header {
   font-family: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
