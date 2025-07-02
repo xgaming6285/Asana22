@@ -289,9 +289,172 @@ export default function LoginPage() {
           </svg>
         </div>
         
-        {/* Lightning flash overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-blue-500/10 to-pink-500/5 animate-lightning-flash"></div>
+              {/* Lightning flash overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-blue-500/10 to-pink-500/5 animate-lightning-flash"></div>
+    </div>
+    
+    {/* Water Effects - Rain and Ripples */}
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Rain drops */}
+      <div className="absolute inset-0">
+        {/* Rain drop layer 1 */}
+        {Array.from({ length: 15 }, (_, i) => (
+          <div
+            key={`rain-1-${i}`}
+            className="absolute animate-rain-drop-1"
+            style={{
+              left: `${(i * 7 + 5) % 100}%`,
+              animationDelay: `${i * 0.2}s`,
+              animationDuration: `${2 + (i % 3) * 0.5}s`
+            }}
+          >
+            <div className="w-0.5 h-8 bg-gradient-to-b from-blue-300/60 to-transparent rounded-full"></div>
+          </div>
+        ))}
+        
+        {/* Rain drop layer 2 */}
+        {Array.from({ length: 12 }, (_, i) => (
+          <div
+            key={`rain-2-${i}`}
+            className="absolute animate-rain-drop-2"
+            style={{
+              left: `${(i * 8 + 10) % 100}%`,
+              animationDelay: `${i * 0.3}s`,
+              animationDuration: `${2.5 + (i % 2) * 0.3}s`
+            }}
+          >
+            <div className="w-0.5 h-6 bg-gradient-to-b from-cyan-300/50 to-transparent rounded-full"></div>
+          </div>
+        ))}
+        
+        {/* Rain drop layer 3 */}
+        {Array.from({ length: 10 }, (_, i) => (
+          <div
+            key={`rain-3-${i}`}
+            className="absolute animate-rain-drop-3"
+            style={{
+              left: `${(i * 9 + 15) % 100}%`,
+              animationDelay: `${i * 0.4}s`,
+              animationDuration: `${3 + (i % 4) * 0.2}s`
+            }}
+          >
+            <div className="w-0.5 h-10 bg-gradient-to-b from-blue-400/40 to-transparent rounded-full"></div>
+          </div>
+        ))}
+        
+        {/* Rain drop layer 4 - lighter drops */}
+        {Array.from({ length: 8 }, (_, i) => (
+          <div
+            key={`rain-4-${i}`}
+            className="absolute animate-rain-drop-4"
+            style={{
+              left: `${(i * 11 + 20) % 100}%`,
+              animationDelay: `${i * 0.5}s`,
+              animationDuration: `${2.2 + (i % 3) * 0.4}s`
+            }}
+          >
+            <div className="w-0.5 h-5 bg-gradient-to-b from-indigo-300/35 to-transparent rounded-full"></div>
+          </div>
+        ))}
       </div>
+      
+      {/* Water ripples on the ground */}
+      <div className="absolute bottom-0 left-0 right-0 h-32">
+        {Array.from({ length: 6 }, (_, i) => (
+          <div
+            key={`ripple-${i}`}
+            className="absolute animate-water-ripple-1"
+            style={{
+              left: `${(i * 15 + 10) % 90}%`,
+              bottom: `${5 + (i % 3) * 8}px`,
+              animationDelay: `${i * 1.2}s`,
+              animationDuration: `${3 + (i % 2) * 0.5}s`
+            }}
+          >
+            <div className="w-8 h-8 border border-blue-300/30 rounded-full"></div>
+          </div>
+        ))}
+        
+        {Array.from({ length: 4 }, (_, i) => (
+          <div
+            key={`ripple-2-${i}`}
+            className="absolute animate-water-ripple-2"
+            style={{
+              left: `${(i * 20 + 15) % 85}%`,
+              bottom: `${8 + (i % 2) * 12}px`,
+              animationDelay: `${i * 1.8}s`,
+              animationDuration: `${3.5 + (i % 3) * 0.3}s`
+            }}
+          >
+            <div className="w-6 h-6 border border-cyan-300/25 rounded-full"></div>
+          </div>
+        ))}
+        
+        {Array.from({ length: 3 }, (_, i) => (
+          <div
+            key={`ripple-3-${i}`}
+            className="absolute animate-water-ripple-3"
+            style={{
+              left: `${(i * 25 + 20) % 80}%`,
+              bottom: `${3 + (i % 4) * 6}px`,
+              animationDelay: `${i * 2.5}s`,
+              animationDuration: `${4 + (i % 2) * 0.4}s`
+            }}
+          >
+            <div className="w-10 h-10 border border-indigo-300/20 rounded-full"></div>
+          </div>
+        ))}
+      </div>
+      
+      {/* Floating water bubbles */}
+      <div className="absolute inset-0">
+        {Array.from({ length: 8 }, (_, i) => (
+          <div
+            key={`bubble-${i}`}
+            className="absolute animate-water-bubble-float"
+            style={{
+              left: `${(i * 12 + 8) % 95}%`,
+              animationDelay: `${i * 1.5}s`,
+              animationDuration: `${8 + (i % 3) * 2}s`
+            }}
+          >
+            <div 
+              className="bg-blue-300/20 rounded-full border border-blue-300/30"
+              style={{
+                width: `${4 + (i % 3) * 2}px`,
+                height: `${4 + (i % 3) * 2}px`
+              }}
+            ></div>
+          </div>
+        ))}
+        
+        {Array.from({ length: 5 }, (_, i) => (
+          <div
+            key={`bubble-2-${i}`}
+            className="absolute animate-water-bubble-float"
+            style={{
+              left: `${(i * 18 + 12) % 90}%`,
+              animationDelay: `${i * 2.2}s`,
+              animationDuration: `${10 + (i % 2) * 1.5}s`
+            }}
+          >
+            <div 
+              className="bg-cyan-300/15 rounded-full border border-cyan-300/25"
+              style={{
+                width: `${3 + (i % 4) * 1.5}px`,
+                height: `${3 + (i % 4) * 1.5}px`
+              }}
+            ></div>
+          </div>
+        ))}
+      </div>
+      
+      {/* Water shimmer overlay */}
+      <div className="absolute inset-0 water-gradient opacity-30"></div>
+      
+      {/* Rain overlay for atmospheric effect */}
+      <div className="absolute inset-0 rain-overlay"></div>
+    </div>
       
       {/* Floating background elements with thunder effects */}
       <div className="absolute inset-0 overflow-hidden">
