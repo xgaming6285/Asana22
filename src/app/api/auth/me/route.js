@@ -7,7 +7,7 @@ import { decryptUserData } from "../../../utils/encryption";
 const prisma = new PrismaClient();
 
 export async function GET(request) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value;
 
   if (!token) {

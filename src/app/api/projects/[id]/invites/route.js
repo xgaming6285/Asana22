@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { auth } from "@clerk/nextjs/server";
+import { getUserIdFromToken } from "../../../../utils/auth.js";
 import { decryptProjectData, encryptUserData, decryptUserData } from "../../../../utils/encryption.js";
 
 const prisma = new PrismaClient();
@@ -8,10 +8,7 @@ const prisma = new PrismaClient();
 // Get all invitations for a project
 export async function GET(request, { params }) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const userId = await getUserIdFromToken();
 
     const { id: projectId } = await params;
 
@@ -19,9 +16,7 @@ export async function GET(request, { params }) {
     const membership = await prisma.projectMembership.findFirst({
       where: {
         projectId: parseInt(projectId),
-        user: {
-          clerkId: userId,
-        },
+        userId: userId,
         role: {
           in: ["ADMIN", "CREATOR"],
         },
@@ -45,7 +40,6 @@ export async function GET(request, { params }) {
             firstName: true,
             lastName: true,
             imageUrl: true,
-            clerkId: true,
           },
         },
         project: {
@@ -76,10 +70,7 @@ export async function GET(request, { params }) {
 // Create a new invitation
 export async function POST(request, { params }) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const userId = await getUserIdFromToken();
 
     const { id: projectId } = await params;
     const { email, role } = await request.json();
@@ -92,9 +83,7 @@ export async function POST(request, { params }) {
     const membership = await prisma.projectMembership.findFirst({
       where: {
         projectId: parseInt(projectId),
-        user: {
-          clerkId: userId,
-        },
+        userId: userId,
         role: {
           in: ["ADMIN", "CREATOR"],
         },
@@ -125,7 +114,6 @@ export async function POST(request, { params }) {
           email: encryptedUserData.email,
           firstName: encryptedUserData.firstName,
           lastName: encryptedUserData.lastName,
-          clerkId: "", // Empty string for now, will be set when they sign up
         },
       });
     }

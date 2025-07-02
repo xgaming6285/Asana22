@@ -34,7 +34,7 @@ export async function GET(request, { params }) {
       include: {
         user: {
           select: {
-            clerkId: true,
+            id: true,
             firstName: true,
             lastName: true,
             imageUrl: true,
@@ -101,7 +101,7 @@ export async function POST(request, { params }) {
       include: {
         user: {
           select: {
-            clerkId: true,
+            id: true,
             firstName: true,
             lastName: true,
             imageUrl: true,
