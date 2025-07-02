@@ -197,36 +197,95 @@ export default function LoginPage() {
           </svg>
         </div>
         
-        {/* Additional small branching lightning elements scattered around */}
+        {/* Additional small branching lightning elements scattered around - more frequent and subtle */}
         <div className="absolute top-[15%] left-[20%] animate-lightning-branch-1">
-          <svg width="40" height="60" viewBox="0 0 40 60" className="text-purple-400">
-            <path d="M20 0 L15 20 L25 18 L10 40 L30 38 L15 60" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.6"/>
-            <path d="M25 18 L35 25 L30 35" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
-            <path d="M10 40 L0 47 L5 57" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+          <svg width="25" height="35" viewBox="0 0 25 35" className="text-purple-400 opacity-60">
+            <path d="M12 0 L9 12 L15 10 L6 22 L18 20 L9 35" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+            <path d="M15 10 L20 15 L18 20" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3"/>
+            <path d="M6 22 L2 26 L4 30" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3"/>
+            <path d="M18 20 L22 24 L20 28" stroke="currentColor" strokeWidth="0.6" fill="none" opacity="0.25"/>
           </svg>
         </div>
         
         <div className="absolute top-[45%] left-[60%] animate-lightning-branch-2">
-          <svg width="35" height="50" viewBox="0 0 35 50" className="text-blue-400">
-            <path d="M17 0 L12 15 L22 13 L7 30 L27 28 L12 50" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.6"/>
-            <path d="M22 13 L32 20 L27 30" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
-            <path d="M7 30 L0 37 L5 47" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+          <svg width="20" height="30" viewBox="0 0 20 30" className="text-blue-400 opacity-50">
+            <path d="M10 0 L7 9 L13 8 L4 18 L16 16 L7 30" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+            <path d="M13 8 L18 12 L16 16" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3"/>
+            <path d="M4 18 L1 22 L3 26" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3"/>
           </svg>
         </div>
         
         <div className="absolute top-[70%] right-[40%] animate-lightning-branch-3">
-          <svg width="30" height="45" viewBox="0 0 30 45" className="text-pink-400">
-            <path d="M15 0 L10 12 L20 10 L5 25 L25 23 L10 45" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.6"/>
-            <path d="M20 10 L28 17 L23 27" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
-            <path d="M5 25 L0 32 L5 42" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+          <svg width="18" height="28" viewBox="0 0 18 28" className="text-pink-400 opacity-45">
+            <path d="M9 0 L6 8 L12 7 L3 16 L15 14 L6 28" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+            <path d="M12 7 L16 11 L14 15" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3"/>
+            <path d="M3 16 L0 20 L2 24" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3"/>
           </svg>
         </div>
         
         <div className="absolute top-[25%] right-[15%] animate-lightning-branch-4">
-          <svg width="25" height="40" viewBox="0 0 25 40" className="text-cyan-400">
-            <path d="M12 0 L7 10 L17 8 L2 20 L22 18 L7 40" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.6"/>
-            <path d="M17 8 L25 15 L20 25" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
-            <path d="M2 20 L0 27 L5 37" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+          <svg width="15" height="25" viewBox="0 0 15 25" className="text-cyan-400 opacity-40">
+            <path d="M7 0 L5 7 L10 6 L2 13 L13 11 L4 25" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+            <path d="M10 6 L14 9 L12 13" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3"/>
+            <path d="M2 13 L0 17 L2 21" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3"/>
+          </svg>
+        </div>
+
+        {/* Micro lightning branches - very subtle and frequent */}
+        <div className="absolute top-[8%] left-[45%] animate-lightning-micro-1">
+          <svg width="12" height="18" viewBox="0 0 12 18" className="text-purple-300 opacity-30">
+            <path d="M6 0 L4 6 L8 5 L2 12 L10 10 L3 18" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3"/>
+            <path d="M8 5 L11 7 L9 10" stroke="currentColor" strokeWidth="0.6" fill="none" opacity="0.2"/>
+          </svg>
+        </div>
+        
+        <div className="absolute top-[35%] right-[8%] animate-lightning-micro-2">
+          <svg width="10" height="15" viewBox="0 0 10 15" className="text-blue-300 opacity-25">
+            <path d="M5 0 L3 5 L7 4 L1 10 L9 8 L2 15" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3"/>
+            <path d="M7 4 L9 6 L8 9" stroke="currentColor" strokeWidth="0.6" fill="none" opacity="0.2"/>
+          </svg>
+        </div>
+        
+        <div className="absolute top-[55%] left-[12%] animate-lightning-micro-3">
+          <svg width="14" height="20" viewBox="0 0 14 20" className="text-pink-300 opacity-35">
+            <path d="M7 0 L5 7 L9 6 L3 13 L11 11 L4 20" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3"/>
+            <path d="M9 6 L12 8 L10 12" stroke="currentColor" strokeWidth="0.6" fill="none" opacity="0.2"/>
+            <path d="M3 13 L1 16 L3 19" stroke="currentColor" strokeWidth="0.6" fill="none" opacity="0.2"/>
+          </svg>
+        </div>
+        
+        <div className="absolute top-[80%] right-[25%] animate-lightning-micro-4">
+          <svg width="8" height="12" viewBox="0 0 8 12" className="text-cyan-300 opacity-20">
+            <path d="M4 0 L2 4 L6 3 L1 8 L7 6 L2 12" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3"/>
+            <path d="M6 3 L7 5 L6 7" stroke="currentColor" strokeWidth="0.6" fill="none" opacity="0.2"/>
+          </svg>
+        </div>
+        
+        <div className="absolute top-[18%] left-[75%] animate-lightning-micro-5">
+          <svg width="11" height="16" viewBox="0 0 11 16" className="text-indigo-300 opacity-28">
+            <path d="M5 0 L3 5 L7 4 L2 10 L9 8 L3 16" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3"/>
+            <path d="M7 4 L10 6 L8 9" stroke="currentColor" strokeWidth="0.6" fill="none" opacity="0.2"/>
+          </svg>
+        </div>
+        
+        <div className="absolute top-[62%] left-[85%] animate-lightning-micro-6">
+          <svg width="9" height="14" viewBox="0 0 9 14" className="text-purple-300 opacity-22">
+            <path d="M4 0 L2 4 L6 3 L1 9 L7 7 L2 14" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3"/>
+            <path d="M6 3 L8 5 L7 8" stroke="currentColor" strokeWidth="0.6" fill="none" opacity="0.2"/>
+          </svg>
+        </div>
+        
+        <div className="absolute top-[42%] left-[3%] animate-lightning-micro-1">
+          <svg width="13" height="19" viewBox="0 0 13 19" className="text-blue-300 opacity-26">
+            <path d="M6 0 L4 6 L8 5 L2 12 L10 10 L3 19" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3"/>
+            <path d="M8 5 L11 7 L9 11" stroke="currentColor" strokeWidth="0.6" fill="none" opacity="0.2"/>
+          </svg>
+        </div>
+        
+        <div className="absolute top-[88%] left-[55%] animate-lightning-micro-2">
+          <svg width="7" height="11" viewBox="0 0 7 11" className="text-pink-300 opacity-18">
+            <path d="M3 0 L2 3 L5 2 L1 7 L6 5 L2 11" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3"/>
+            <path d="M5 2 L6 4 L5 6" stroke="currentColor" strokeWidth="0.6" fill="none" opacity="0.2"/>
           </svg>
         </div>
         
