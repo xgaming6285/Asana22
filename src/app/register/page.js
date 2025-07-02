@@ -163,20 +163,160 @@ export default function RegisterPage() {
         <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-purple-500/10 to-pink-500/10 animate-gradient-flow"></div>
       </div>
       
-      {/* Lightning effects */}
+      {/* Lightning effects with branching */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Lightning bolt 1 */}
-        <div className="absolute top-0 left-1/3 w-1 h-full bg-gradient-to-b from-transparent via-blue-300 to-transparent animate-lightning-bolt">
-          <div className="absolute top-24 -left-2 w-6 h-1 bg-blue-300 rotate-45 opacity-80"></div>
-          <div className="absolute top-36 -right-2 w-4 h-1 bg-purple-300 -rotate-45 opacity-60"></div>
-          <div className="absolute top-52 -left-1 w-3 h-1 bg-pink-300 rotate-12 opacity-70"></div>
+        {/* Lightning bolt 1 - Left side with branches */}
+        <div className="absolute top-0 left-[12%] animate-lightning-strike-1">
+          <svg width="110" height="100vh" viewBox="0 0 110 800" className="text-blue-300 h-screen">
+            {/* Main lightning bolt */}
+            <path d="M55 0 L50 75 L70 70 L40 155 L80 150 L30 235 L75 230 L20 315 L85 310 L15 395 L90 390 L10 475 L85 470 L25 555 L70 550 L35 635 L60 630 L45 715 L50 800" 
+                  stroke="currentColor" strokeWidth="3" fill="none" 
+                  className="drop-shadow-[0_0_11px_rgba(59,130,246,0.9)]"/>
+            <path d="M55 0 L50 75 L70 70 L40 155 L80 150 L30 235 L75 230 L20 315 L85 310 L15 395 L90 390 L10 475 L85 470 L25 555 L70 550 L35 635 L60 630 L45 715 L50 800" 
+                  stroke="rgba(255,255,255,0.9)" strokeWidth="1.5" fill="none"/>
+            
+            {/* Branch 1 - from first zigzag */}
+            <path d="M70 70 L90 85 L80 105 L100 120" 
+                  stroke="currentColor" strokeWidth="2" fill="none" opacity="0.8"
+                  className="drop-shadow-[0_0_8px_rgba(59,130,246,0.7)]"/>
+            <path d="M70 70 L90 85 L80 105 L100 120" 
+                  stroke="rgba(255,255,255,0.8)" strokeWidth="1" fill="none"/>
+            
+            {/* Branch 2 - from second zigzag */}
+            <path d="M40 155 L20 175 L30 195 L10 215 L20 235" 
+                  stroke="currentColor" strokeWidth="2" fill="none" opacity="0.7"
+                  className="drop-shadow-[0_0_6px_rgba(59,130,246,0.6)]"/>
+            <path d="M40 155 L20 175 L30 195 L10 215 L20 235" 
+                  stroke="rgba(255,255,255,0.7)" strokeWidth="1" fill="none"/>
+            
+            {/* Branch 3 - from middle section */}
+            <path d="M75 230 L95 245 L85 265 L105 280 L95 300" 
+                  stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.6"
+                  className="drop-shadow-[0_0_5px_rgba(59,130,246,0.5)]"/>
+            <path d="M75 230 L95 245 L85 265 L105 280 L95 300" 
+                  stroke="rgba(255,255,255,0.6)" strokeWidth="0.8" fill="none"/>
+            
+            {/* Mini branches */}
+            <path d="M80 150 L95 165 L90 180" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.5"/>
+            <path d="M85 310 L100 325 L95 340" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.5"/>
+            <path d="M90 390 L75 405 L80 420" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+            <path d="M85 470 L70 485 L75 500" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+            <path d="M70 550 L85 565 L80 580" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.3"/>
+          </svg>
         </div>
         
-        {/* Lightning bolt 2 */}
-        <div className="absolute top-0 right-1/4 w-1 h-full bg-gradient-to-b from-transparent via-pink-300 to-transparent animate-lightning-bolt-2">
-          <div className="absolute top-20 -right-2 w-5 h-1 bg-pink-300 -rotate-45 opacity-80"></div>
-          <div className="absolute top-32 -left-2 w-4 h-1 bg-blue-300 rotate-45 opacity-60"></div>
-          <div className="absolute top-48 -right-1 w-3 h-1 bg-purple-300 -rotate-12 opacity-70"></div>
+        {/* Lightning bolt 2 - Center left with branches */}
+        <div className="absolute top-0 left-[42%] animate-lightning-strike-2">
+          <svg width="95" height="100vh" viewBox="0 0 95 800" className="text-purple-300 h-screen">
+            {/* Main lightning bolt */}
+            <path d="M45 0 L55 85 L30 80 L65 165 L25 160 L75 245 L20 240 L80 325 L15 320 L85 405 L30 400 L90 485 L10 480 L80 565 L35 560 L70 645 L40 640 L60 725 L45 800" 
+                  stroke="currentColor" strokeWidth="3" fill="none"
+                  className="drop-shadow-[0_0_9px_rgba(168,85,247,0.8)]"/>
+            <path d="M45 0 L55 85 L30 80 L65 165 L25 160 L75 245 L20 240 L80 325 L15 320 L85 405 L30 400 L90 485 L10 480 L80 565 L35 560 L70 645 L40 640 L60 725 L45 800" 
+                  stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" fill="none"/>
+            
+            {/* Branches */}
+            <path d="M30 80 L10 95 L20 115 L0 130" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.8"/>
+            <path d="M65 165 L85 180 L75 200 L90 215" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.7"/>
+            <path d="M25 160 L5 175 L15 195 L0 210" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.6"/>
+            <path d="M75 245 L95 260 L85 280" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.6"/>
+            <path d="M20 240 L0 255 L10 275" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.5"/>
+            
+            {/* Mini branches */}
+            <path d="M80 325 L95 340 L90 355" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.5"/>
+            <path d="M15 320 L0 335 L5 350" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+            <path d="M85 405 L70 420 L75 435" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+            <path d="M30 400 L15 415 L20 430" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.3"/>
+            <path d="M90 485 L75 500 L80 515" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.3"/>
+          </svg>
+        </div>
+        
+        {/* Lightning bolt 3 - Center right with branches */}
+        <div className="absolute top-0 right-[18%] animate-lightning-strike-3">
+          <svg width="100" height="100vh" viewBox="0 0 100 800" className="text-pink-300 h-screen">
+            {/* Main lightning bolt */}
+            <path d="M50 0 L40 70 L65 65 L30 150 L75 145 L20 230 L80 225 L10 310 L85 305 L5 390 L90 385 L15 470 L85 465 L25 550 L75 545 L35 630 L65 625 L45 710 L50 800" 
+                  stroke="currentColor" strokeWidth="3" fill="none"
+                  className="drop-shadow-[0_0_13px_rgba(236,72,153,0.7)]"/>
+            <path d="M50 0 L40 70 L65 65 L30 150 L75 145 L20 230 L80 225 L10 310 L85 305 L5 390 L90 385 L15 470 L85 465 L25 550 L75 545 L35 630 L65 625 L45 710 L50 800" 
+                  stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" fill="none"/>
+            
+            {/* Branches */}
+            <path d="M65 65 L85 80 L75 100 L95 115" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.8"/>
+            <path d="M30 150 L10 165 L20 185 L0 200" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.7"/>
+            <path d="M75 145 L95 160 L85 180 L100 195" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.6"/>
+            <path d="M20 230 L0 245 L10 265" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.6"/>
+            <path d="M80 225 L100 240 L90 260 L95 275" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.5"/>
+            <path d="M10 310 L0 325 L10 345" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.5"/>
+            
+            {/* Mini branches */}
+            <path d="M85 305 L70 320 L75 335" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.5"/>
+            <path d="M5 390 L20 405 L15 420" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+            <path d="M90 385 L100 400 L95 415" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+            <path d="M15 470 L0 485 L5 500" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.3"/>
+            <path d="M85 465 L70 480 L75 495" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.3"/>
+            <path d="M25 550 L10 565 L15 580" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.3"/>
+          </svg>
+        </div>
+        
+        {/* Lightning bolt 4 - Far right with branches */}
+        <div className="absolute top-0 right-[3%] animate-lightning-strike-4">
+          <svg width="85" height="100vh" viewBox="0 0 85 800" className="text-indigo-300 h-screen">
+            {/* Main lightning bolt */}
+            <path d="M40 0 L45 80 L20 75 L55 160 L15 155 L65 240 L10 235 L70 320 L25 315 L75 400 L5 395 L80 480 L20 475 L75 560 L30 555 L65 640 L40 635 L50 720 L35 800" 
+                  stroke="currentColor" strokeWidth="3" fill="none"
+                  className="drop-shadow-[0_0_8px_rgba(99,102,241,0.7)]"/>
+            <path d="M40 0 L45 80 L20 75 L55 160 L15 155 L65 240 L10 235 L70 320 L25 315 L75 400 L5 395 L80 480 L20 475 L75 560 L30 555 L65 640 L40 635 L50 720 L35 800" 
+                  stroke="rgba(255,255,255,0.75)" strokeWidth="1.5" fill="none"/>
+            
+            {/* Branches */}
+            <path d="M20 75 L0 90 L10 110" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.8"/>
+            <path d="M55 160 L75 175 L65 195 L80 210" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.7"/>
+            <path d="M15 155 L0 170 L10 190" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.6"/>
+            <path d="M65 240 L80 255 L70 275" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.6"/>
+            <path d="M10 235 L0 250 L10 270" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.5"/>
+            
+            {/* Mini branches */}
+            <path d="M70 320 L55 335 L60 350" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.5"/>
+            <path d="M25 315 L10 330 L15 345" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+            <path d="M75 400 L60 415 L65 430" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+            <path d="M5 395 L20 410 L15 425" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.3"/>
+            <path d="M80 480 L65 495 L70 510" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.3"/>
+            <path d="M20 475 L5 490 L10 505" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.3"/>
+          </svg>
+        </div>
+        
+        {/* Additional small branching lightning elements scattered around */}
+        <div className="absolute top-[20%] left-[25%] animate-lightning-branch-1">
+          <svg width="35" height="55" viewBox="0 0 35 55" className="text-blue-400">
+            <path d="M17 0 L12 18 L22 16 L7 35 L27 33 L12 55" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.6"/>
+            <path d="M22 16 L32 23 L27 33" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+            <path d="M7 35 L0 42 L5 52" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+          </svg>
+        </div>
+        
+        <div className="absolute top-[50%] left-[65%] animate-lightning-branch-2">
+          <svg width="30" height="45" viewBox="0 0 30 45" className="text-purple-400">
+            <path d="M15 0 L10 13 L20 11 L5 26 L25 24 L10 45" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.6"/>
+            <path d="M20 11 L28 18 L23 28" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+            <path d="M5 26 L0 33 L5 43" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+          </svg>
+        </div>
+        
+        <div className="absolute top-[75%] right-[35%] animate-lightning-branch-3">
+          <svg width="28" height="42" viewBox="0 0 28 42" className="text-pink-400">
+            <path d="M14 0 L9 11 L19 9 L4 22 L24 20 L9 42" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.6"/>
+            <path d="M19 9 L27 16 L22 26" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+            <path d="M4 22 L0 29 L5 39" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+          </svg>
+        </div>
+        
+        <div className="absolute top-[30%] right-[10%] animate-lightning-branch-4">
+          <svg width="22" height="35" viewBox="0 0 22 35" className="text-indigo-400">
+            <path d="M11 0 L6 9 L16 7 L1 18 L21 16 L6 35" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.6"/>
+            <path d="M16 7 L22 14 L17 24" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+            <path d="M1 18 L0 25 L5 35" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.4"/>
+          </svg>
         </div>
         
         {/* Lightning flash overlay */}

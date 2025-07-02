@@ -636,51 +636,150 @@
     opacity: 0; 
     transform: scale(1) rotate(0deg);
   }
+  1% { 
+    opacity: 0.8; 
+    transform: scale(1.05) rotate(0.5deg);
+  }
   2% { 
+    opacity: 0.3; 
+    transform: scale(1.02) rotate(-0.2deg);
+  }
+  3% { 
     opacity: 1; 
-    transform: scale(1.1) rotate(1deg);
+    transform: scale(1.08) rotate(0.3deg);
   }
   4% { 
-    opacity: 0.3; 
-    transform: scale(1.05) rotate(-0.5deg);
-  }
-  6% { 
-    opacity: 1; 
-    transform: scale(1.2) rotate(0.5deg);
-  }
-  8% { 
     opacity: 0; 
     transform: scale(1) rotate(0deg);
   }
 }
 
-@keyframes lightning-bolt {
-  0%, 90%, 100% { 
+@keyframes lightning-strike-1 {
+  0%, 95%, 100% { 
     opacity: 0; 
-    transform: translateY(-100px) rotate(15deg) scale(0.8);
+    transform: scale(0.8);
   }
-  1%, 3%, 5% { 
+  1%, 3% { 
     opacity: 1; 
-    transform: translateY(0) rotate(15deg) scale(1);
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 20px rgba(139, 92, 246, 0.6));
   }
-  2%, 4% { 
-    opacity: 0.6; 
-    transform: translateY(10px) rotate(15deg) scale(0.95);
+  2% { 
+    opacity: 0.4; 
+    transform: scale(0.95);
   }
 }
 
-@keyframes lightning-bolt-2 {
-  0%, 90%, 100% { 
+@keyframes lightning-strike-2 {
+  0%, 95%, 100% { 
     opacity: 0; 
-    transform: translateY(-80px) rotate(-20deg) scale(0.7);
+    transform: scale(0.7) rotate(5deg);
   }
-  2%, 4%, 6% { 
+  2%, 4% { 
+    opacity: 0.9; 
+    transform: scale(1.1) rotate(5deg);
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 16px rgba(168, 85, 247, 0.7));
+  }
+  3% { 
+    opacity: 0.3; 
+    transform: scale(0.9) rotate(5deg);
+  }
+}
+
+@keyframes lightning-strike-3 {
+  0%, 95%, 100% { 
+    opacity: 0; 
+    transform: scale(0.6) rotate(-8deg);
+  }
+  4%, 6% { 
     opacity: 0.8; 
-    transform: translateY(20px) rotate(-20deg) scale(1.1);
+    transform: scale(1.2) rotate(-8deg);
+    filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.7)) drop-shadow(0 0 24px rgba(236, 72, 153, 0.5));
   }
-  3%, 5% { 
-    opacity: 0.4; 
-    transform: translateY(30px) rotate(-20deg) scale(0.9);
+  5% { 
+    opacity: 0.2; 
+    transform: scale(0.8) rotate(-8deg);
+  }
+}
+
+@keyframes lightning-strike-4 {
+  0%, 95%, 100% { 
+    opacity: 0; 
+    transform: scale(0.9) rotate(12deg);
+  }
+  6%, 8% { 
+    opacity: 0.7; 
+    transform: scale(1) rotate(12deg);
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 18px rgba(59, 130, 246, 0.6));
+  }
+  7% { 
+    opacity: 0.3; 
+    transform: scale(0.85) rotate(12deg);
+  }
+}
+
+/* New branching lightning animations */
+@keyframes lightning-branch-1 {
+  0%, 97%, 100% { 
+    opacity: 0; 
+    transform: scale(0.5) rotate(-10deg);
+  }
+  1.5%, 2.5% { 
+    opacity: 0.8; 
+    transform: scale(1.1) rotate(-10deg);
+    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.8)) drop-shadow(0 0 16px rgba(168, 85, 247, 0.5));
+  }
+  2% { 
+    opacity: 0.3; 
+    transform: scale(0.8) rotate(-10deg);
+  }
+}
+
+@keyframes lightning-branch-2 {
+  0%, 97%, 100% { 
+    opacity: 0; 
+    transform: scale(0.6) rotate(15deg);
+  }
+  3.5%, 4.5% { 
+    opacity: 0.7; 
+    transform: scale(1.2) rotate(15deg);
+    filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.7)) drop-shadow(0 0 12px rgba(139, 92, 246, 0.4));
+  }
+  4% { 
+    opacity: 0.2; 
+    transform: scale(0.9) rotate(15deg);
+  }
+}
+
+@keyframes lightning-branch-3 {
+  0%, 97%, 100% { 
+    opacity: 0; 
+    transform: scale(0.4) rotate(-20deg);
+  }
+  5.5%, 6.5% { 
+    opacity: 0.6; 
+    transform: scale(1.3) rotate(-20deg);
+    filter: drop-shadow(0 0 5px rgba(236, 72, 153, 0.6)) drop-shadow(0 0 10px rgba(168, 85, 247, 0.3));
+  }
+  6% { 
+    opacity: 0.1; 
+    transform: scale(0.7) rotate(-20deg);
+  }
+}
+
+@keyframes lightning-branch-4 {
+  0%, 97%, 100% { 
+    opacity: 0; 
+    transform: scale(0.7) rotate(25deg);
+  }
+  7.5%, 8.5% { 
+    opacity: 0.5; 
+    transform: scale(1.4) rotate(25deg);
+    filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.5)) drop-shadow(0 0 8px rgba(99, 102, 241, 0.3));
+  }
+  8% { 
+    opacity: 0.1; 
+    transform: scale(0.9) rotate(25deg);
   }
 }
 
@@ -746,15 +845,39 @@
 
 /* Animation utility classes for lightning effects */
 .animate-lightning-flash {
-  animation: lightning-flash 8s infinite;
+  animation: lightning-flash 12s infinite;
 }
 
-.animate-lightning-bolt {
-  animation: lightning-bolt 8s infinite;
+.animate-lightning-strike-1 {
+  animation: lightning-strike-1 15s infinite;
 }
 
-.animate-lightning-bolt-2 {
-  animation: lightning-bolt-2 8s infinite 1s;
+.animate-lightning-strike-2 {
+  animation: lightning-strike-2 18s infinite 3s;
+}
+
+.animate-lightning-strike-3 {
+  animation: lightning-strike-3 20s infinite 7s;
+}
+
+.animate-lightning-strike-4 {
+  animation: lightning-strike-4 16s infinite 11s;
+}
+
+.animate-lightning-branch-1 {
+  animation: lightning-branch-1 14s infinite 2s;
+}
+
+.animate-lightning-branch-2 {
+  animation: lightning-branch-2 16s infinite 5s;
+}
+
+.animate-lightning-branch-3 {
+  animation: lightning-branch-3 18s infinite 9s;
+}
+
+.animate-lightning-branch-4 {
+  animation: lightning-branch-4 13s infinite 12s;
 }
 
 .animate-thunder-rumble {
