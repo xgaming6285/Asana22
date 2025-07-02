@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 
 export default function RandomRonImage() {
   const [ronImages, setRonImages] = useState([]);
   const [nextId, setNextId] = useState(0);
-  const [useNextImage, setUseNextImage] = useState(true);
 
   useEffect(() => {
     const createRandomRon = () => {
@@ -17,8 +15,8 @@ export default function RandomRonImage() {
       const x = Math.random() * (window.innerWidth - 200); // 200px for image width
       const y = Math.random() * (window.innerHeight - 200); // 200px for image height
       
-      // Random size between 80px and 150px
-      const size = Math.random() * 70 + 80;
+      // Random size between 80px and 150px - using integers to avoid fractional sizes
+      const size = Math.floor(Math.random() * 70 + 80);
       
       // Random rotation
       const rotation = Math.random() * 360;
@@ -37,11 +35,11 @@ export default function RandomRonImage() {
 
       setRonImages(prev => [...prev, newRon]);
 
-      // Fade in
+      // Fade in with reduced opacity for transparency effect
       setTimeout(() => {
         setRonImages(prev => 
           prev.map(ron => 
-            ron.id === id ? { ...ron, opacity: 1 } : ron
+            ron.id === id ? { ...ron, opacity: 0.3 + Math.random() * 0.4 } : ron // Random opacity between 0.3-0.7
           )
         );
       }, 100);
@@ -75,6 +73,14 @@ export default function RandomRonImage() {
     };
   }, [nextId]);
 
+  const handleImageError = (e) => {
+    console.error('Failed to load ron.png:', e.target.src);
+  };
+
+  const handleImageLoad = () => {
+    console.log('Ron image loaded successfully');
+  };
+
   return (
     <div className="fixed inset-0 pointer-events-none z-50">
       {ronImages.map((ron) => (
@@ -88,41 +94,19 @@ export default function RandomRonImage() {
             transform: `rotate(${ron.rotation}deg)`,
           }}
         >
-          {useNextImage ? (
-            <Image
-              src="/ron.png"
-              alt="Ron"
-              width={Math.round(ron.size)}
-              height={Math.round(ron.size)}
-              className="object-contain drop-shadow-lg"
-              priority={false}
-              unoptimized={true}
-              onError={(e) => {
-                console.error('Failed to load ron.png with Next.js Image:', e);
-                setUseNextImage(false);
-              }}
-              onLoad={() => {
-                console.log('Ron image loaded successfully with Next.js Image');
-              }}
-            />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src="/ron.png"
-              alt="Ron"
-              className="object-contain drop-shadow-lg"
-              style={{
-                width: `${ron.size}px`,
-                height: `${ron.size}px`,
-              }}
-              onError={(e) => {
-                console.error('Failed to load ron.png with img tag:', e);
-              }}
-              onLoad={() => {
-                console.log('Ron image loaded successfully with img tag');
-              }}
-            />
-          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/ron.png"
+            alt="Ron"
+            className="object-contain drop-shadow-lg filter blur-[0.5px] mix-blend-soft-light"
+            style={{
+              width: `${ron.size}px`,
+              height: `${ron.size}px`,
+              filter: 'sepia(20%) hue-rotate(220deg) saturate(0.8) brightness(0.9) contrast(1.1)',
+            }}
+            onError={handleImageError}
+            onLoad={handleImageLoad}
+          />
         </div>
       ))}
     </div>

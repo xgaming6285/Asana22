@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
-import RandomRonImage from '../components/RandomRonImage';
+import FieldAwareRonImage from '../components/FieldAwareRonImage';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,7 +26,13 @@ export default function LoginPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    // Map obfuscated field names back to original names
+    const fieldMap = {
+      'field_x1': 'email',
+      'field_y2': 'password'
+    };
+    const actualFieldName = fieldMap[name] || name;
+    setFormData((prev) => ({ ...prev, [actualFieldName]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -484,7 +490,7 @@ export default function LoginPage() {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off" autoCorrect="off" autoCapitalize="off">
               {/* Email field */}
               <div className="space-y-2">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-200">
@@ -498,11 +504,18 @@ export default function LoginPage() {
                   </div>
                   <input
                     id="email"
-                    name="email"
-                    type="email"
+                    name="field_x1"
+                    type="text"
                     required
                     value={formData.email}
                     onChange={handleChange}
+                    autoComplete="chrome-off"
+                    data-lpignore="true"
+                    data-form-type="other"
+                    spellCheck="false"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    role="presentation"
                     className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
                     placeholder="your@email.com"
                   />
@@ -522,11 +535,18 @@ export default function LoginPage() {
                   </div>
                   <input
                     id="password"
-                    name="password"
+                    name="field_y2"
                     type={showPassword ? "text" : "password"}
                     required
                     value={formData.password}
                     onChange={handleChange}
+                    autoComplete="chrome-off"
+                    data-lpignore="true"
+                    data-form-type="other"
+                    spellCheck="false"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    role="presentation"
                     className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
                     placeholder="Въведете паролата си"
                   />
@@ -607,8 +627,8 @@ export default function LoginPage() {
         </div>
       </div>
       
-      {/* Random Ron Images */}
-      <RandomRonImage />
+      {/* Field-aware Ron Images */}
+      <FieldAwareRonImage formType="login" />
     </div>
   );
 } 

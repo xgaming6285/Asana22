@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import RandomRonImage from '../components/RandomRonImage';
+import FieldAwareRonImage from '../components/FieldAwareRonImage';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -56,7 +56,15 @@ export default function RegisterPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    // Map obfuscated field names back to original names
+    const fieldMap = {
+      'field_a1': 'firstName',
+      'field_b2': 'lastName',
+      'field_c3': 'email',
+      'field_d4': 'password'
+    };
+    const actualFieldName = fieldMap[name] || name;
+    setFormData((prev) => ({ ...prev, [actualFieldName]: value }));
   };
 
   const handleCaptchaChange = (e) => {
@@ -581,7 +589,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off" autoCorrect="off" autoCapitalize="off">
               {/* Name fields */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -596,10 +604,17 @@ export default function RegisterPage() {
                     </div>
                     <input
                       id="firstName"
-                      name="firstName"
+                      name="field_a1"
                       type="text"
                       value={formData.firstName}
                       onChange={handleChange}
+                      autoComplete="chrome-off"
+                      data-lpignore="true"
+                      data-form-type="other"
+                      spellCheck="false"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      role="presentation"
                       className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
                       placeholder="Вашето име"
                     />
@@ -617,10 +632,17 @@ export default function RegisterPage() {
                     </div>
                     <input
                       id="lastName"
-                      name="lastName"
+                      name="field_b2"
                       type="text"
                       value={formData.lastName}
                       onChange={handleChange}
+                      autoComplete="chrome-off"
+                      data-lpignore="true"
+                      data-form-type="other"
+                      spellCheck="false"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      role="presentation"
                       className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
                       placeholder="Вашата фамилия"
                     />
@@ -641,11 +663,18 @@ export default function RegisterPage() {
                   </div>
                   <input
                     id="email"
-                    name="email"
-                    type="email"
+                    name="field_c3"
+                    type="text"
                     required
                     value={formData.email}
                     onChange={handleChange}
+                    autoComplete="chrome-off"
+                    data-lpignore="true"
+                    data-form-type="other"
+                    spellCheck="false"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    role="presentation"
                     className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
                     placeholder="your@email.com"
                   />
@@ -665,11 +694,18 @@ export default function RegisterPage() {
                   </div>
                   <input
                     id="password"
-                    name="password"
+                    name="field_d4"
                     type={showPassword ? "text" : "password"}
                     required
                     value={formData.password}
                     onChange={handleChange}
+                    autoComplete="chrome-off"
+                    data-lpignore="true"
+                    data-form-type="other"
+                    spellCheck="false"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    role="presentation"
                     className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
                     placeholder="Създайте сигурна парола"
                   />
@@ -824,8 +860,8 @@ export default function RegisterPage() {
         </div>
       </div>
       
-      {/* Random Ron Images */}
-      <RandomRonImage />
+      {/* Field-aware Ron Images */}
+      <FieldAwareRonImage formType="register" />
     </div>
   );
 } 
