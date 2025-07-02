@@ -1,16 +1,35 @@
 import { Resend } from 'resend';
 import { NextResponse } from 'next/server';
-import { currentUser } from '@clerk/nextjs/server';
+import { getUserIdFromToken } from '@/app/utils/auth';
 import { db } from '@/app/lib/db';
+import { decryptUserData } from '@/app/utils/encryption';
 import ProjectInvitationEmail from '@/app/components/emails/ProjectInvitation';
 import signalService from '@/app/services/signalService';
 
 export async function POST(req) {
     try {
-        const user = await currentUser();
-        if (!user) {
+        const userId = await getUserIdFromToken();
+        if (!userId) {
             return new NextResponse('Unauthorized', { status: 401 });
         }
+
+        // Get current user from database
+        const currentUser = await db.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+            },
+        });
+
+        if (!currentUser) {
+            return new NextResponse('User not found', { status: 404 });
+        }
+
+        // Decrypt user data to get the actual names
+        const decryptedUser = decryptUserData(currentUser);
 
         const { projectId, email, signalPhone, signalApiKey } = await req.json();
 
@@ -23,7 +42,7 @@ export async function POST(req) {
                 id: projectId,
                 members: {
                     some: {
-                        userId: user.id
+                        userId: userId
                     }
                 }
             }
@@ -50,7 +69,7 @@ export async function POST(req) {
             data: {
                 projectId,
                 email,
-                inviterId: user.id,
+                inviterId: userId,
                 status: 'PENDING',
                 expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             }
@@ -69,7 +88,7 @@ export async function POST(req) {
                     subject: `Invitation to join ${project.name}`,
                     react: ProjectInvitationEmail({
                         projectName: project.name,
-                        inviterName: `${user.firstName} ${user.lastName}`,
+                        inviterName: `${decryptedUser.firstName} ${decryptedUser.lastName}`,
                         inviteLink
                     })
                 });
@@ -91,7 +110,7 @@ export async function POST(req) {
                     signalApiKey,
                     {
                         projectName: project.name,
-                        inviterName: `${user.firstName} ${user.lastName}`,
+                        inviterName: `${decryptedUser.firstName} ${decryptedUser.lastName}`,
                         inviteLink
                     }
                 );

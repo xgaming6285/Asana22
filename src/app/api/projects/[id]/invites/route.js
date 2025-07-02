@@ -157,7 +157,6 @@ export async function POST(request, { params }) {
             email: true,
             firstName: true,
             lastName: true,
-            clerkId: true,
           },
         },
         project: {

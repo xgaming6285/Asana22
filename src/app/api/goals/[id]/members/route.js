@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getUserIdFromToken } from "@/app/utils/auth";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -9,12 +9,12 @@ export async function POST(request, context) {
         const url = new URL(request.url);
         const goalId = parseInt(url.pathname.split('/')[3]);
 
-        const { userId: clerkId } = await auth();
-        if (!clerkId) {
+        const userId = await getUserIdFromToken();
+        if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const user = await prisma.user.findUnique({ where: { clerkId } });
+        const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
@@ -72,12 +72,12 @@ export async function DELETE(request, context) {
         const url = new URL(request.url);
         const goalId = parseInt(url.pathname.split('/')[3]);
 
-        const { userId: clerkId } = await auth();
-        if (!clerkId) {
+        const userId = await getUserIdFromToken();
+        if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const user = await prisma.user.findUnique({ where: { clerkId } });
+        const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }

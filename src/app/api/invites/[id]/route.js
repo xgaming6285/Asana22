@@ -1,13 +1,32 @@
 import { NextResponse } from 'next/server';
-import { currentUser } from '@clerk/nextjs/server';
+import { getUserIdFromToken } from '@/app/utils/auth';
 import { db } from '@/app/lib/db';
+import { decryptUserData } from '@/app/utils/encryption';
 
 export async function GET(req, { params }) {
     try {
-        const user = await currentUser();
-        if (!user) {
+        const userId = await getUserIdFromToken();
+        if (!userId) {
             return new NextResponse('Unauthorized', { status: 401 });
         }
+
+        // Get current user from database
+        const currentUser = await db.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+            },
+        });
+
+        if (!currentUser) {
+            return new NextResponse('User not found', { status: 404 });
+        }
+
+        // Decrypt user data to get the actual email
+        const decryptedUser = decryptUserData(currentUser);
 
         const { id } = await params;
         const invitation = await db.projectInvitation.findUnique({
@@ -27,7 +46,7 @@ export async function GET(req, { params }) {
             return new NextResponse('Invitation not found or expired', { status: 404 });
         }
 
-        if (invitation.email !== user.emailAddresses[0].emailAddress) {
+        if (invitation.email !== decryptedUser.email) {
             return new NextResponse('This invitation is not for you', { status: 403 });
         }
 
@@ -44,10 +63,28 @@ export async function GET(req, { params }) {
 
 export async function POST(req, { params }) {
     try {
-        const user = await currentUser();
-        if (!user) {
+        const userId = await getUserIdFromToken();
+        if (!userId) {
             return new NextResponse('Unauthorized', { status: 401 });
         }
+
+        // Get current user from database
+        const currentUser = await db.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+            },
+        });
+
+        if (!currentUser) {
+            return new NextResponse('User not found', { status: 404 });
+        }
+
+        // Decrypt user data to get the actual email
+        const decryptedUser = decryptUserData(currentUser);
 
         const { id } = await params;
         const invitation = await db.projectInvitation.findUnique({
@@ -64,14 +101,14 @@ export async function POST(req, { params }) {
             return new NextResponse('Invitation not found or expired', { status: 404 });
         }
 
-        if (invitation.email !== user.emailAddresses[0].emailAddress) {
+        if (invitation.email !== decryptedUser.email) {
             return new NextResponse('This invitation is not for you', { status: 403 });
         }
 
         await db.projectMember.create({
             data: {
                 projectId: invitation.projectId,
-                userId: user.id,
+                userId: userId,
                 role: 'MEMBER'
             }
         });

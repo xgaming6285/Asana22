@@ -10,7 +10,7 @@ const withBundleAnalyzer = process.env.ANALYZE === 'true'
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
-        domains: ['img.clerk.com'],
+        domains: [],
     },
     compiler: {
         removeConsole: process.env.NODE_ENV === 'production',
