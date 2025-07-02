@@ -310,4 +310,57 @@ export function decryptUsersArray(users) {
   }
 
   return users.map(user => decryptUserData(user));
+}
+
+/**
+ * Encrypt message data fields
+ * @param {Object} messageData - The message data object
+ * @returns {Object} - Message data with encrypted sensitive fields
+ */
+export function encryptMessageData(messageData) {
+  if (!messageData || typeof messageData !== 'object') {
+    return messageData;
+  }
+
+  const encrypted = { ...messageData };
+
+  // Encrypt sensitive fields
+  if (encrypted.text) {
+    encrypted.text = encrypt(encrypted.text);
+  }
+
+  return encrypted;
+}
+
+/**
+ * Decrypt message data fields
+ * @param {Object} messageData - The message data object with encrypted fields
+ * @returns {Object} - Message data with decrypted sensitive fields
+ */
+export function decryptMessageData(messageData) {
+  if (!messageData || typeof messageData !== 'object') {
+    return messageData;
+  }
+
+  const decrypted = { ...messageData };
+
+  // Decrypt sensitive fields
+  if (decrypted.text) {
+    decrypted.text = decrypt(decrypted.text);
+  }
+
+  return decrypted;
+}
+
+/**
+ * Decrypt an array of message objects
+ * @param {Array} messages - Array of message objects
+ * @returns {Array} - Array of messages with decrypted data
+ */
+export function decryptMessagesArray(messages) {
+  if (!Array.isArray(messages)) {
+    return messages;
+  }
+
+  return messages.map(message => decryptMessageData(message));
 } 
