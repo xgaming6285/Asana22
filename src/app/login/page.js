@@ -68,23 +68,43 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="fixed inset-0 overflow-hidden">
+      {/* Animated gradient background with storm effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 animate-storm-background">
         <div className="absolute inset-0 bg-gradient-to-tr from-pink-500/10 via-purple-500/10 to-cyan-500/10 animate-gradient-flow"></div>
       </div>
       
-      {/* Floating background elements */}
+      {/* Lightning effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Lightning bolt 1 */}
+        <div className="absolute top-0 left-1/4 w-1 h-full bg-gradient-to-b from-transparent via-purple-300 to-transparent animate-lightning-bolt">
+          <div className="absolute top-20 -left-2 w-6 h-1 bg-purple-300 rotate-45 opacity-80"></div>
+          <div className="absolute top-32 -right-2 w-4 h-1 bg-blue-300 -rotate-45 opacity-60"></div>
+          <div className="absolute top-48 -left-1 w-3 h-1 bg-pink-300 rotate-12 opacity-70"></div>
+        </div>
+        
+        {/* Lightning bolt 2 */}
+        <div className="absolute top-0 right-1/3 w-1 h-full bg-gradient-to-b from-transparent via-blue-300 to-transparent animate-lightning-bolt-2">
+          <div className="absolute top-16 -right-2 w-5 h-1 bg-blue-300 -rotate-45 opacity-80"></div>
+          <div className="absolute top-28 -left-2 w-4 h-1 bg-purple-300 rotate-45 opacity-60"></div>
+          <div className="absolute top-44 -right-1 w-3 h-1 bg-cyan-300 -rotate-12 opacity-70"></div>
+        </div>
+        
+        {/* Lightning flash overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-blue-500/10 to-pink-500/5 animate-lightning-flash"></div>
+      </div>
+      
+      {/* Floating background elements with thunder effects */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-float-reverse"></div>
-        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-pink-500/15 rounded-full blur-2xl animate-pulse-slow"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-float animate-thunder-rumble"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-float-reverse animate-thunder-rumble"></div>
+        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-pink-500/15 rounded-full blur-2xl animate-pulse-slow animate-thunder-rumble"></div>
       </div>
 
-      <div className="relative min-h-screen flex items-center justify-center p-4">
+      <div className="absolute inset-0 flex items-center justify-center p-4 translate-y-4">
         <div className="w-full max-w-md animate-slide-in-up">
-          {/* Glass morphism card */}
-          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-8 space-y-8">
+          {/* Glass morphism card with electric glow */}
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-8 space-y-8 animate-electric-glow">
             {/* Header */}
             <div className="text-center space-y-2">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-4 shadow-lg">
