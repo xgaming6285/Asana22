@@ -290,7 +290,7 @@ function DesktopSidebar({ navItems, pathname, isCollapsed, onToggleCollapse }) {
         ))}
       </nav>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
+      <div className="overflow-y-auto custom-scrollbar">
         {/* Account Settings at the bottom */}
         {user && (
           <div className="p-6 border-t border-white/10 animate-fade-in" style={{ animationDelay: '500ms' }}></div>
