@@ -1,27 +1,13 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
 import { decryptUserData } from "../../utils/encryption.js";
+import { getUserIdFromToken } from "../../utils/auth.js";
 
 const prisma = new PrismaClient();
 
 export async function GET(request) {
   try {
-    const { userId: clerkUserId } = await auth();
-    if (!clerkUserId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { clerkId: clerkUserId },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found in the system" },
-        { status: 404 }
-      );
-    }
+    const userId = await getUserIdFromToken();
 
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get("projectId");
@@ -35,13 +21,13 @@ export async function GET(request) {
 
     console.log("Checking membership for:", {
       projectId: parseInt(projectId),
-      userId: user.id,
+      userId: userId,
     });
 
     const userMembership = await prisma.projectMembership.findFirst({
       where: {
         projectId: parseInt(projectId),
-        userId: user.id,
+        userId: userId,
         status: "ACTIVE",
       },
     });
@@ -97,21 +83,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const { userId: clerkUserId } = await auth();
-    if (!clerkUserId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { clerkId: clerkUserId },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found in the system" },
-        { status: 404 }
-      );
-    }
+    const userId = await getUserIdFromToken();
 
     const body = await request.json();
     const { projectId, email, role } = body;
@@ -126,7 +98,7 @@ export async function POST(request) {
     const inviterMembership = await prisma.projectMembership.findFirst({
       where: {
         projectId: parseInt(projectId),
-        userId: user.id,
+        userId: userId,
         status: "ACTIVE",
         role: { in: ["ADMIN", "CREATOR"] },
       },
@@ -177,7 +149,7 @@ export async function POST(request) {
         userId: invitedUser.id,
         role,
         status: "PENDING",
-        invitedBy: user.id,
+        invitedBy: userId,
       },
       include: {
         user: {

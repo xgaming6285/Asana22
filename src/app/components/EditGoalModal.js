@@ -82,8 +82,8 @@ export default function EditGoalModal({ isOpen, onClose, goalToEdit, onGoalUpdat
                     description,
                     ownerId: parseInt(selectedOwnerId),
                     privacy,
-                    startDate: startDate || null,
-                    endDate: endDate || null,
+                    startDate: startDate ? new Date(startDate) : null,
+                    endDate: endDate ? new Date(endDate) : null,
                     // --- НОВО: Добавяме типа към заявката за обновяване ---
                     type,
                 }),

@@ -1,59 +1,83 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse } from 'next/server';
+import { jwtVerify } from 'jose';
 
-export default clerkMiddleware({
-  /**
-   * Defines an array of routes that should be publicly accessible.
-   * By providing an empty array `[]`, you are stating that no application routes
-   * are public by default. Clerk's own authentication routes (e.g., /sign-in, /sign-up)
-   * are implicitly public and handled by Clerk.
-   *
-   * If a user is not authenticated and attempts to access any route matched by
-   * the `config.matcher` below (and not part of Clerk's auth routes),
-   * they will be automatically redirected to your Clerk sign-in page.
-   *
-   * If you had other public pages (e.g., a landing page, a public blog),
-   * you would list their paths here, for example: `publicRoutes: ['/', '/blog/:path*']`.
-   */
-  publicRoutes: ["/"],
+const PUBLIC_FILE = /\\.(.*)$/;
 
-  /**
-   * Optional: Defines an array of routes that should be ignored by Clerk's
-   * authentication processing. This is useful for webhooks or other routes
-   * that handle their own authentication.
-   * Example: `ignoredRoutes: ['/api/webhook/some-service']`
-   */
-  // ignoredRoutes: [],
-});
+// This function can be marked `async` if using `await` inside
+export async function middleware(request) {
+  const { pathname } = request.nextUrl;
 
+  // Skip Next.js internal paths and static files
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') || // We will protect API routes individually
+    pathname.startsWith('/static') ||
+    PUBLIC_FILE.test(pathname)
+  ) {
+    return NextResponse.next();
+  }
+
+  const token = request.cookies.get('token')?.value;
+
+  // Redirect root path to login or dashboard
+  if (pathname === '/') {
+    if (token) {
+      try {
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+        await jwtVerify(token, secret);
+        return NextResponse.redirect(new URL('/dashboard', request.url));
+      } catch (error) {
+        // Invalid token, redirect to login and clear cookie
+        const response = NextResponse.redirect(new URL('/login', request.url));
+        response.cookies.delete('token');
+        return response;
+      }
+    }
+    // No token, go to login
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
+
+  if (isAuthPage) {
+    if (token) {
+      // If user is logged in, redirect from auth pages to dashboard
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+    // If not logged in and on an auth page, allow access
+    return NextResponse.next();
+  }
+
+  if (!token) {
+    // If no token and not on an auth page, redirect to login
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // Verify the token for protected routes
+  try {
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    await jwtVerify(token, secret);
+    // Token is valid, allow access
+    return NextResponse.next();
+  } catch (error) {
+    console.error('JWT Verification Error:', error.message);
+    // If token is invalid, redirect to login and clear the invalid cookie
+    const response = NextResponse.redirect(new URL('/login', request.url));
+    response.cookies.delete('token');
+    return response;
+  }
+}
+
+// We are keeping the matcher simple for now and handling logic in the middleware.
 export const config = {
   matcher: [
-    /**
-     * This is a common and effective pattern for Next.js middleware.
-     * It matches all routes EXCEPT:
-     * 1. Next.js internal routes (e.g., `/_next/...`).
-     * 2. Static files commonly found in the `public` directory or served as assets
-     * (e.g., .css, .js (but not .json), .png, .svg, etc.).
-     * The `[^?]*` part ensures it correctly handles query parameters.
-     * This broad pattern ensures that most of your application pages and dynamic
-     * API endpoints are processed by the middleware.
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
      */
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-
-    /**
-     * This pattern explicitly ensures that all routes starting with `/api/` or `/trpc/`
-     * are processed by the middleware. While the general pattern above might already
-     * cover these, adding this provides an extra layer of certainty, especially for
-     * critical API endpoints.
-     */
-    "/(api|trpc)(.*)",
-
-    /**
-     * This pattern specifically targets routes like `/project/123/board/some/path`.
-     * It ensures these dynamic board-related routes are processed by the middleware.
-     * If your first general pattern is correctly configured, this might be redundant,
-     * but explicitly listing key protected route structures can be a good practice
-     * for clarity and assurance.
-     */
-    "/project/:id/board/:path*",
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };

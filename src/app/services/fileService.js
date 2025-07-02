@@ -4,15 +4,6 @@ const prisma = new PrismaClient();
 
 export async function createFile(data) {
   try {
-    // First, get the user's internal ID using their Clerk ID
-    const user = await prisma.user.findUnique({
-      where: { clerkId: data.uploaderId },
-    });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
     const file = await prisma.file.create({
       data: {
         name: data.name,
@@ -26,7 +17,7 @@ export async function createFile(data) {
         },
         uploader: {
           connect: {
-            id: user.id,
+            id: data.uploaderId,
           },
         },
       },
@@ -78,17 +69,8 @@ export async function getProjectFiles(projectId) {
   }));
 }
 
-export async function deleteFile(fileId, clerkId) {
+export async function deleteFile(fileId, userId) {
   try {
-    // Get the user's internal ID
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
     const file = await prisma.file.findUnique({
       where: { id: fileId },
       include: {
@@ -96,7 +78,7 @@ export async function deleteFile(fileId, clerkId) {
           include: {
             projectMemberships: {
               where: {
-                userId: user.id,
+                userId: userId,
                 role: { in: ["ADMIN", "CREATOR"] },
               },
             },
@@ -111,7 +93,7 @@ export async function deleteFile(fileId, clerkId) {
 
     // Check if user has permission to delete
     if (
-      file.uploaderId !== user.id &&
+      file.uploaderId !== userId &&
       file.project.projectMemberships.length === 0
     ) {
       throw new Error("Unauthorized to delete this file");
@@ -126,17 +108,8 @@ export async function deleteFile(fileId, clerkId) {
   }
 }
 
-export async function updateFile(fileId, data, clerkId) {
+export async function updateFile(fileId, data, userId) {
   try {
-    // Get the user's internal ID
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
     const file = await prisma.file.findUnique({
       where: { id: fileId },
       include: {
@@ -144,7 +117,7 @@ export async function updateFile(fileId, data, clerkId) {
           include: {
             projectMemberships: {
               where: {
-                userId: user.id,
+                userId: userId,
                 role: { in: ["ADMIN", "CREATOR"] },
               },
             },
@@ -159,7 +132,7 @@ export async function updateFile(fileId, data, clerkId) {
 
     // Check if user has permission to update
     if (
-      file.uploaderId !== user.id &&
+      file.uploaderId !== userId &&
       file.project.projectMemberships.length === 0
     ) {
       throw new Error("Unauthorized to update this file");

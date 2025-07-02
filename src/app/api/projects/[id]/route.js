@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { auth } from "@clerk/nextjs/server";
+import { getUserIdFromToken } from "../../../utils/auth";
 import { encryptProjectData, decryptProjectData } from "../../../utils/encryption.js";
 
 const prisma = new PrismaClient();
@@ -32,29 +32,13 @@ export async function GET(request, { params }) {
 export async function PUT(request, { params }) {
   const { id } = await params;
   try {
-    const { userId: clerkUserId } = await auth();
-    if (!clerkUserId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get the internal user ID from Clerk ID
-    const user = await prisma.user.findUnique({
-      where: { clerkId: clerkUserId },
-      select: { id: true },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found in the system" },
-        { status: 404 }
-      );
-    }
+    const userId = await getUserIdFromToken();
 
     // Check if user has permission to update (ADMIN or CREATOR)
     const membership = await prisma.projectMembership.findFirst({
       where: {
         projectId: parseInt(id),
-        userId: user.id,
+        userId: userId,
         status: "ACTIVE",
         role: { in: ["ADMIN", "CREATOR"] },
       },
@@ -99,51 +83,17 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   const { id } = await params;
   try {
-    const { userId: clerkUserId } = await auth();
-    console.log('Auth result - clerkUserId:', clerkUserId);
-    if (!clerkUserId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get the internal user ID from Clerk ID
-    const user = await prisma.user.findUnique({
-      where: { clerkId: clerkUserId },
-      select: { id: true, clerkId: true, email: true },
-    });
-
-    if (!user) {
-      console.log('User lookup failed for clerkUserId:', clerkUserId);
-      return NextResponse.json(
-        { error: "User not found in the system" },
-        { status: 404 }
-      );
-    }
+    const userId = await getUserIdFromToken();
 
     // Check if user is the CREATOR of the project
     const membership = await prisma.projectMembership.findFirst({
       where: {
         projectId: parseInt(id),
-        userId: user.id,
+        userId: userId,
         status: "ACTIVE",
         role: "CREATOR",
       },
     });
-
-    // Debug logging
-    console.log('DELETE PROJECT DEBUG:');
-    console.log('Project ID:', parseInt(id));
-    console.log('User ID:', user.id);
-    console.log('User Clerk ID:', user.clerkId);
-    console.log('Found membership:', membership);
-
-    // Also check all memberships for this project and user for debugging
-    const allMemberships = await prisma.projectMembership.findMany({
-      where: {
-        projectId: parseInt(id),
-        userId: user.id,
-      },
-    });
-    console.log('All memberships for user in this project:', allMemberships);
 
     if (!membership) {
       return NextResponse.json(

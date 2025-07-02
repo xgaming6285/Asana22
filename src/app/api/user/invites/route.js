@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { auth } from "@clerk/nextjs/server";
+import { getUserIdFromToken } from "../../../utils/auth";
 import { decryptProjectData, decryptUserData } from "../../../utils/encryption.js";
 
 const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    const { userId } = await auth();
+    const userId = await getUserIdFromToken();
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -16,9 +16,7 @@ export async function GET() {
     // Get all pending invitations for the user
     const invitations = await prisma.projectMembership.findMany({
       where: {
-        user: {
-          clerkId: userId,
-        },
+        userId: userId,
         status: "PENDING",
       },
       include: {

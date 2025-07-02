@@ -3,25 +3,24 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from './context/AuthContext';
-import LoadingSpinner from './components/LoadingSpinner';
+import { useAuth } from '../context/AuthContext';
 
-export default function HomePage() {
-  const { user, isLoading, refetchUser } = useAuth();
+export default function LoginPage() {
   const router = useRouter();
-  
+  const { setUser } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && user) {
-      router.replace('/dashboard');
+    const savedEmail = localStorage.getItem('lastLoggedInEmail');
+    if (savedEmail) {
+      setFormData((prev) => ({ ...prev, email: savedEmail }));
     }
-  }, [user, isLoading, router]);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -31,39 +30,41 @@ export default function HomePage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setIsSubmitting(true);
+    setLoading(true);
 
     try {
-        const res = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData),
-        });
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
 
-        if (!res.ok) {
-            const data = await res.json();
-            throw new Error(data.error || 'Failed to login');
-        }
+      const data = await res.json();
 
-        await refetchUser(); // Refetch user data to update context
-        router.push('/dashboard');
+      if (!res.ok) {
+        throw new Error(data.error || 'Неуспешен вход');
+      }
+
+      // Save email to localStorage for future use
+      localStorage.setItem('lastLoggedInEmail', formData.email);
+
+      // Set user in the auth context
+      if (data.user) {
+        setUser(data.user);
+      }
+      
+      // Redirect to dashboard on successful login
+      router.push('/dashboard');
+      router.refresh(); // Refresh to update server-side state if needed
+
     } catch (err) {
       setError(err.message);
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
-
-  if (isLoading || (!isLoading && user)) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner />
-          <p className="text-gray-400 mt-4">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -102,10 +103,10 @@ export default function HomePage() {
           <div>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={loading}
               className="w-full px-4 py-2 font-bold text-white bg-purple-600 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
             >
-              {isSubmitting ? 'Влизане...' : 'Вход'}
+              {loading ? 'Влизане...' : 'Вход'}
             </button>
           </div>
         </form>

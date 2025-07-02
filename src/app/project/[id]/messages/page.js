@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "../../../context/AuthContext";
 import { useParams } from "next/navigation";
 
 const MessagesPage = () => {
-  const { user } = useUser();
+  const { user } = useAuth();
   const params = useParams();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -78,7 +78,7 @@ const MessagesPage = () => {
 
   const handleEditMessage = (messageId) => {
     const message = messages.find((m) => m.id === messageId);
-    if (message && message.user.clerkId === user?.id) {
+    if (message && message.user.id === user?.id) {
       setEditingMessage(message);
     }
   };
@@ -187,9 +187,9 @@ const MessagesPage = () => {
           </div>
         ) : (
           messages.map((message, index) => {
-            const isOwnMessage = message.user.clerkId === user?.id;
-            const showAvatar = index === 0 || messages[index - 1].user.clerkId !== message.user.clerkId;
-            const isLastInGroup = index === messages.length - 1 || messages[index + 1].user.clerkId !== message.user.clerkId;
+            const isOwnMessage = message.user.id === user?.id;
+            const showAvatar = index === 0 || messages[index - 1].user.id !== message.user.id;
+            const isLastInGroup = index === messages.length - 1 || messages[index + 1].user.id !== message.user.id;
             
             return (
               <div
@@ -298,7 +298,7 @@ const MessagesPage = () => {
                   )}
                   
                   {/* Action buttons - only show for own messages */}
-                  {message.user.clerkId === user?.id && !editingMessage && isLastInGroup && (
+                  {message.user.id === user?.id && !editingMessage && isLastInGroup && (
                     <div className={`flex gap-3 mt-1 px-1 ${isOwnMessage ? "flex-row-reverse" : ""}`}>
                       <button
                         onClick={() => handleEditMessage(message.id)}

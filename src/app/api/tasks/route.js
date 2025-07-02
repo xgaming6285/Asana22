@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
 import { encryptTaskData, decryptTasksArray, decryptUserData } from "../../utils/encryption.js";
+import { getUserIdFromToken } from "../../utils/auth.js";
 
 const prisma = new PrismaClient();
 
@@ -74,16 +74,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     // Authentication check
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get the user from the database
-    const user = await prisma.user.findUnique({ where: { clerkId: userId } });
-    if (!user) {
-      return NextResponse.json({ error: "User not found in system" }, { status: 404 });
-    }
+    const userId = await getUserIdFromToken();
 
     const data = await request.json();
 
@@ -121,7 +112,7 @@ export async function POST(request) {
 
     // Check if user is a member of the project
     const isProjectMember = project.projectMemberships.some(
-      (member) => member.userId === user.id && member.status === "ACTIVE"
+      (member) => member.userId === userId && member.status === "ACTIVE"
     );
     if (!isProjectMember) {
       return NextResponse.json({ error: "Forbidden: Not authorized to create tasks in this project" }, { status: 403 });
@@ -141,7 +132,7 @@ export async function POST(request) {
       startDate: data.startDate ? new Date(data.startDate) : null,
       dueDate: data.dueDate ? new Date(data.dueDate) : null,
       projectId: projectId,
-      createdById: user.id, // Set the creator of the task
+      createdById: userId, // Set the creator of the task
     };
 
     // Optional: Add assigneeId if provided

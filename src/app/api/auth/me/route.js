@@ -1,22 +1,29 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
 import { PrismaClient } from "@prisma/client";
-import { decryptUserData } from "../../../utils/encryption.js";
+import { decryptUserData } from "../../../utils/encryption";
 
 const prisma = new PrismaClient();
 
 export async function GET(request) {
+  const cookieStore = cookies();
+  const token = cookieStore.get('token')?.value;
+
+  if (!token) {
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  }
+
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    const { payload } = await jwtVerify(token, secret);
+    
+    const userId = payload.userId;
 
     const user = await prisma.user.findUnique({
-      where: { clerkId },
+      where: { id: userId },
       select: {
         id: true,
-        clerkId: true,
         email: true,
         firstName: true,
         lastName: true,
@@ -25,18 +32,14 @@ export async function GET(request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Decrypt user data before returning
     const decryptedUser = decryptUserData(user);
 
     return NextResponse.json(decryptedUser);
   } catch (error) {
-    console.error("Error fetching current user:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch user information" },
-      { status: 500 }
-    );
+    console.error('Me endpoint error:', error);
+    return NextResponse.json({ error: 'Invalid token or server error' }, { status: 401 });
   }
 } 
