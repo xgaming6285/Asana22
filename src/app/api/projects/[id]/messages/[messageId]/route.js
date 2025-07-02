@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { decryptUserData, encryptMessageData, decryptMessageData } from "../../../../../utils/encryption.js";
 import { getUserIdFromToken } from "../../../../../utils/auth.js";
 
 const prisma = new PrismaClient();
@@ -50,10 +51,13 @@ export async function PATCH(req, { params }) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Encrypt the updated message text
+    const encryptedText = encryptMessageData({ text: text.trim() }).text;
+
     // Update the message
     const updatedMessage = await prisma.message.update({
       where: { id: messageIdInt },
-      data: { text: text.trim() },
+      data: { text: encryptedText },
       include: {
         user: {
           select: {
@@ -66,7 +70,13 @@ export async function PATCH(req, { params }) {
       },
     });
 
-    return NextResponse.json(updatedMessage);
+    // Decrypt message data and user data before returning
+    const decryptedMessage = {
+      ...decryptMessageData(updatedMessage),
+      user: decryptUserData(updatedMessage.user)
+    };
+
+    return NextResponse.json(decryptedMessage);
   } catch (error) {
     console.error("Error updating message:", error);
     return NextResponse.json(

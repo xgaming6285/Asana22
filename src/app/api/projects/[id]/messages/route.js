@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { decryptUserData } from "../../../../utils/encryption.js";
+import { decryptUserData, encryptMessageData, decryptMessageData, decryptMessagesArray } from "../../../../utils/encryption.js";
 import { getUserIdFromToken } from "../../../../utils/auth.js";
 
 const prisma = new PrismaClient();
@@ -46,8 +46,8 @@ export async function GET(request, { params }) {
       },
     });
 
-    // Decrypt user data in messages before returning
-    const decryptedMessages = messages.map(message => ({
+    // Decrypt message data and user data before returning
+    const decryptedMessages = decryptMessagesArray(messages).map(message => ({
       ...message,
       user: decryptUserData(message.user)
     }));
@@ -91,13 +91,16 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Encrypt the message data before storing
+    const encryptedMessageData = encryptMessageData({
+      text: text.trim(),
+      projectId: projectId,
+      userId: userId,
+    });
+
     // Create the message
     const message = await prisma.message.create({
-      data: {
-        text: text.trim(),
-        projectId: projectId,
-        userId: userId,
-      },
+      data: encryptedMessageData,
       include: {
         user: {
           select: {
@@ -110,9 +113,9 @@ export async function POST(request, { params }) {
       },
     });
 
-    // Decrypt user data before returning
+    // Decrypt message data and user data before returning
     const decryptedMessage = {
-      ...message,
+      ...decryptMessageData(message),
       user: decryptUserData(message.user)
     };
 
