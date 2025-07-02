@@ -166,14 +166,14 @@ export default function RegisterPage() {
   const passwordStrength = getPasswordStrength(formData.password);
 
   return (
-    <div className="fixed inset-0 overflow-hidden">
+    <div className="min-h-screen overflow-auto">
       {/* Animated gradient background with storm effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 animate-storm-background">
+      <div className="fixed inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 animate-storm-background -z-10">
         <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-purple-500/10 to-pink-500/10 animate-gradient-flow"></div>
       </div>
       
       {/* Lightning effects with branching */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         {/* Lightning bolt 1 - Left side with branches */}
         <div className="absolute top-0 left-[12%] animate-lightning-strike-1">
           <svg width="110" height="100vh" viewBox="0 0 110 800" className="text-blue-300 h-screen">
@@ -400,7 +400,7 @@ export default function RegisterPage() {
       </div>
       
       {/* Water Effects - Rain and Ripples */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         {/* Rain drops */}
         <div className="absolute inset-0">
           {/* Rain drop layer 1 */}
@@ -563,35 +563,35 @@ export default function RegisterPage() {
       </div>
       
       {/* Floating background elements with thunder effects */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="fixed inset-0 overflow-hidden -z-10">
         <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-float animate-thunder-rumble"></div>
         <div className="absolute bottom-1/4 left-1/4 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-float-reverse animate-thunder-rumble"></div>
         <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-pink-500/15 rounded-full blur-2xl animate-pulse-slow animate-thunder-rumble"></div>
       </div>
 
-      <div className="absolute inset-0 flex items-center justify-center p-4 translate-y-6">
-        <div className="w-full max-w-lg animate-slide-in-up">
+      <div className="relative flex min-h-screen items-center justify-center p-4 py-8 sm:py-12">
+        <div className="w-full max-w-sm sm:max-w-lg animate-slide-in-up">
           {/* Glass morphism card with electric glow */}
-          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-6 space-y-6 animate-electric-glow">
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-4 sm:p-6 space-y-4 sm:space-y-6 animate-electric-glow">
             {/* Header */}
             <div className="text-center space-y-2">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-4 shadow-lg">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-2 sm:mb-4 shadow-lg">
+                <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
               </div>
-              <h1 className="text-3xl font-bold text-white curved-header">
+              <h1 className="text-2xl sm:text-3xl font-bold text-white curved-header">
                 Създайте акаунт
               </h1>
-              <p className="text-gray-300 curved-subtitle">
+              <p className="text-sm sm:text-base text-gray-300 curved-subtitle">
                 Присъединете се към нашата платформа днес
               </p>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off" autoCorrect="off" autoCapitalize="off">
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4" autoComplete="off" autoCorrect="off" autoCapitalize="off">
               {/* Name fields */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-2 sm:gap-4">
                 <div className="space-y-2">
                   <label htmlFor="firstName" className="block text-sm font-medium text-gray-200">
                     Име
@@ -615,7 +615,7 @@ export default function RegisterPage() {
                       autoCorrect="off"
                       autoCapitalize="off"
                       role="presentation"
-                      className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                      className="w-full pl-10 pr-4 py-2 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
                       placeholder="Вашето име"
                     />
                   </div>
@@ -643,7 +643,7 @@ export default function RegisterPage() {
                       autoCorrect="off"
                       autoCapitalize="off"
                       role="presentation"
-                      className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                      className="w-full pl-10 pr-4 py-2 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
                       placeholder="Вашата фамилия"
                     />
                   </div>
@@ -675,7 +675,7 @@ export default function RegisterPage() {
                     autoCorrect="off"
                     autoCapitalize="off"
                     role="presentation"
-                    className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                    className="w-full pl-10 pr-4 py-2 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
                     placeholder="your@email.com"
                   />
                 </div>
@@ -706,7 +706,7 @@ export default function RegisterPage() {
                     autoCorrect="off"
                     autoCapitalize="off"
                     role="presentation"
-                    className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                    className="w-full pl-10 pr-12 py-2 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
                     placeholder="Създайте сигурна парола"
                   />
                   <button
@@ -729,7 +729,7 @@ export default function RegisterPage() {
                 
                 {/* Password strength indicator */}
                 {formData.password && (
-                  <div className="mt-3 space-y-2">
+                  <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-400">Сила на паролата:</span>
                       <span className={`text-xs font-medium px-2 py-1 rounded-full ${
@@ -759,12 +759,12 @@ export default function RegisterPage() {
                 <label htmlFor="captcha" className="block text-sm font-medium text-gray-200">
                   Проверка за сигурност
                 </label>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                  <div className="flex items-center space-x-3">
+                <div className="bg-white/5 border border-white/10 rounded-xl p-3 sm:p-4">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
                     <div className="flex-1">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center justify-center bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-white/20 rounded-lg px-4 py-2 min-w-[120px]">
-                          <span className="text-white font-mono text-lg font-semibold">
+                      <div className="flex items-center space-x-2 sm:space-x-3">
+                        <div className="flex items-center justify-center bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-white/20 rounded-lg px-3 sm:px-4 py-2 min-w-[100px] sm:min-w-[120px]">
+                          <span className="text-white font-mono text-base sm:text-lg font-semibold">
                             {captcha.question}
                           </span>
                         </div>
@@ -820,7 +820,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-2 sm:py-3 px-4 sm:px-6 rounded-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {loading && (
                   <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
@@ -847,7 +847,7 @@ export default function RegisterPage() {
             </form>
 
             {/* Footer */}
-            <div className="text-center pt-4 border-t border-white/10">
+            <div className="text-center pt-3 sm:pt-4 border-t border-white/10">
               <p className="text-gray-300">
                 Вече имате акаунт?{' '}
                 <Link 
