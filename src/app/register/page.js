@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import RandomRonImage from '../components/RandomRonImage';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -822,6 +823,9 @@ export default function RegisterPage() {
           </div>
         </div>
       </div>
+      
+      {/* Random Ron Images */}
+      <RandomRonImage />
     </div>
   );
 } 

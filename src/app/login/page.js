@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
+import RandomRonImage from '../components/RandomRonImage';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -605,6 +606,9 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+      
+      {/* Random Ron Images */}
+      <RandomRonImage />
     </div>
   );
 } 
