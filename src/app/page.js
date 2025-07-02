@@ -45,7 +45,18 @@ export default function HomePage() {
             throw new Error(data.error || 'Failed to login');
         }
 
+        // Preserve new user flags if they exist
+        const isNewUser = typeof window !== 'undefined' ? localStorage.getItem('isNewUser') : null;
+        const justRegistered = typeof window !== 'undefined' ? sessionStorage.getItem('justRegistered') : null;
+
         await refetchUser(); // Refetch user data to update context
+        
+        // Restore the flags after user data is refreshed
+        if (typeof window !== 'undefined') {
+          if (isNewUser) localStorage.setItem('isNewUser', 'true');
+          if (justRegistered) sessionStorage.setItem('justRegistered', 'true');
+        }
+        
         router.push('/dashboard');
     } catch (err) {
       setError(err.message);

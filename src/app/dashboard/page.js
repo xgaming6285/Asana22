@@ -2661,6 +2661,23 @@ export default function Home() {
         <ClientOnly>
           <WelcomeTour />
         </ClientOnly>
+
+        {/* Debug: Reset Tutorial Button (only in development) */}
+        {process.env.NODE_ENV === 'development' && (
+          <button
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                localStorage.removeItem('hasSeenDashboardTour');
+                localStorage.setItem('isNewUser', 'true');
+                window.location.reload();
+              }
+            }}
+            className="fixed bottom-6 left-6 z-50 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm shadow-lg"
+            title="Reset Tutorial (Dev Only)"
+          >
+            🔄 Reset Tutorial
+          </button>
+        )}
       </div>
     </div>
   );
