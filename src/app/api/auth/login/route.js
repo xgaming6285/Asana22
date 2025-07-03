@@ -63,19 +63,18 @@ export async function POST(request) {
       { expiresIn: '7d' } // Token expires in 7 days
     );
 
-    // Set token in an httpOnly cookie
-    cookies().set('token', token, {
+    const decryptedUser = decryptUserData(user);
+    const { password: _, ...userWithoutPassword } = decryptedUser;
+
+    const res = NextResponse.json({ user: userWithoutPassword });
+    res.cookies.set('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: '/',
     });
-
-    const decryptedUser = decryptUserData(user);
-    const { password: _, ...userWithoutPassword } = decryptedUser;
-
-    return NextResponse.json({ user: userWithoutPassword });
+    return res;
 
   } catch (error) {
     console.error('Login error:', error);

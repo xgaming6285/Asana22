@@ -625,6 +625,14 @@ function LoginPageContent() {
               </div>
             </div>
 
+            <div className="flex items-center justify-end">
+              <div className="text-sm">
+                <Link href="/forgot-password" className="font-medium text-purple-400 hover:text-purple-300">
+                  Забравена парола?
+                </Link>
+              </div>
+            </div>
+
             {/* Submit button */}
             <button
               type="submit"
