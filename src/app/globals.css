@@ -1280,3 +1280,26 @@ html, body {
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
+
+/* Ron Motivator Heart Animations */
+@keyframes float-heart-1 {
+  0% { transform: translateY(0px) scale(0); opacity: 0; }
+  50% { transform: translateY(-20px) scale(1); opacity: 1; }
+  100% { transform: translateY(-40px) scale(0); opacity: 0; }
+}
+
+@keyframes float-heart-2 {
+  0% { transform: translateY(0px) scale(0); opacity: 0; }
+  50% { transform: translateY(-25px) scale(1); opacity: 1; }
+  100% { transform: translateY(-50px) scale(0); opacity: 0; }
+}
+
+@keyframes float-heart-3 {
+  0% { transform: translateY(0px) scale(0); opacity: 0; }
+  50% { transform: translateY(-15px) scale(1); opacity: 1; }
+  100% { transform: translateY(-30px) scale(0); opacity: 0; }
+}
+
+.animate-float-heart-1 { animation: float-heart-1 2s ease-in-out infinite; }
+.animate-float-heart-2 { animation: float-heart-2 2.5s ease-in-out infinite; }
+.animate-float-heart-3 { animation: float-heart-3 1.8s ease-in-out infinite; }
