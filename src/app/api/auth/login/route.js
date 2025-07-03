@@ -56,6 +56,14 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Невалидни данни за вход' }, { status: 401 });
     }
 
+    // --- 2FA Check ---
+    if (user.isTwoFactorEnabled) {
+      // Don't issue the final token yet.
+      // Signal to the frontend that a 2FA token is required.
+      return NextResponse.json({ twoFactorRequired: true });
+    }
+    // --- End 2FA Check ---
+
     // Create JWT token
     const token = jwt.sign(
       { userId: user.id, email: user.email },

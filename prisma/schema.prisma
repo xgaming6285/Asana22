@@ -59,6 +59,9 @@ model User {
   passwordResetToken          String?   @unique
   passwordResetTokenExpires   DateTime?
 
+  isTwoFactorEnabled   Boolean @default(false)
+  twoFactorSecret      String?
+
   // Relations
   projectMemberships   ProjectMembership[] // Memberships in different projects
   tasks                Task[]              // Tasks assigned to this user
