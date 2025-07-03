@@ -35,6 +35,11 @@ enum GoalMembershipRole {
   MEMBER
 }
 
+enum SystemRole {
+  SUPER_ADMIN
+  USER
+}
+
 // --- Main Models ---
 
 // Represents a user in the system, synced with Clerk
@@ -45,6 +50,7 @@ model User {
   firstName            String?
   lastName             String?
   imageUrl             String?
+  systemRole           SystemRole          @default(USER)
 
   // Relations
   projectMemberships   ProjectMembership[] // Memberships in different projects

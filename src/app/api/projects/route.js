@@ -1,24 +1,28 @@
 import { PrismaClient } from "@prisma/client";
 import { createApiResponse, withErrorHandling } from "../../utils/apiOptimizer";
 import { encryptGoalData, decryptGoalsArray, encryptProjectData, decryptProjectsArray, encryptUserData, decryptUserData } from "../../utils/encryption.js";
-import { getUserIdFromToken } from "../../utils/auth";
+import { getUserIdFromToken, isSuperAdmin } from "../../utils/auth";
 
 const prisma = new PrismaClient();
 
 export async function GET(request) {
   return withErrorHandling(async () => {
     const userId = await getUserIdFromToken();
+    const isAdmin = await isSuperAdmin(userId);
 
-    // Get all projects where the user is a member with ACTIVE status
-    const projects = await prisma.project.findMany({
-      where: {
-        projectMemberships: {
-          some: {
-            userId: userId,
-            status: "ACTIVE",
-          },
+    // Super admin can see all projects, regular users see only their projects
+    const whereClause = isAdmin ? {} : {
+      projectMemberships: {
+        some: {
+          userId: userId,
+          status: "ACTIVE",
         },
       },
+    };
+
+    // Get all projects where the user is a member with ACTIVE status (or all if super admin)
+    const projects = await prisma.project.findMany({
+      where: whereClause,
       include: {
         projectMemberships: {
           where: {
@@ -90,8 +94,8 @@ export async function GET(request) {
         projectMemberships: decryptedMemberships,
         linkedGoals: decryptedLinkedGoals,
         currentUserRole: currentUserMembership?.role,
-        canDelete: currentUserMembership?.role === "CREATOR",
-        canEdit: currentUserMembership?.role === "CREATOR" || currentUserMembership?.role === "ADMIN",
+        canDelete: isAdmin || currentUserMembership?.role === "CREATOR",
+        canEdit: isAdmin || currentUserMembership?.role === "CREATOR" || currentUserMembership?.role === "ADMIN",
       };
     });
 

@@ -26,8 +26,11 @@ export const ProjectInvitationEmail = ({
                             {inviterName} has invited you to collaborate on the project "{projectName}" using Project Management.
                         </Text>
                         <Button style={button} href={inviteLink}>
-                            Join Project
+                            View Dashboard
                         </Button>
+                        <Text style={text}>
+                            Click the button above to log in and accept your invitation from your dashboard.
+                        </Text>
                         <Text style={text}>
                             If you weren't expecting this invitation, you can ignore this email.
                         </Text>

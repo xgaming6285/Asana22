@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { decryptUserData } from "../../utils/encryption.js";
-import { getUserIdFromToken } from "../../utils/auth.js";
+import { getUserIdFromToken, isSuperAdmin } from "../../utils/auth.js";
 
 const prisma = new PrismaClient();
 
@@ -24,19 +24,24 @@ export async function GET(request) {
       userId: userId,
     });
 
-    const userMembership = await prisma.projectMembership.findFirst({
-      where: {
-        projectId: parseInt(projectId),
-        userId: userId,
-        status: "ACTIVE",
-      },
-    });
+    // Check if user is super admin or has membership to the project
+    const isUserSuperAdmin = await isSuperAdmin(userId);
+    
+    if (!isUserSuperAdmin) {
+      const userMembership = await prisma.projectMembership.findFirst({
+        where: {
+          projectId: parseInt(projectId),
+          userId: userId,
+          status: "ACTIVE",
+        },
+      });
 
-    if (!userMembership) {
-      return NextResponse.json(
-        { error: "You don't have access to this project" },
-        { status: 403 }
-      );
+      if (!userMembership) {
+        return NextResponse.json(
+          { error: "You don't have access to this project" },
+          { status: 403 }
+        );
+      }
     }
 
     const members = await prisma.projectMembership.findMany({
@@ -94,20 +99,25 @@ export async function POST(request) {
       );
     }
 
-    const inviterMembership = await prisma.projectMembership.findFirst({
-      where: {
-        projectId: parseInt(projectId),
-        userId: userId,
-        status: "ACTIVE",
-        role: { in: ["ADMIN", "CREATOR"] },
-      },
-    });
+    // Check if user is super admin or has permission to invite members
+    const isUserSuperAdmin = await isSuperAdmin(userId);
+    
+    if (!isUserSuperAdmin) {
+      const inviterMembership = await prisma.projectMembership.findFirst({
+        where: {
+          projectId: parseInt(projectId),
+          userId: userId,
+          status: "ACTIVE",
+          role: { in: ["ADMIN", "CREATOR"] },
+        },
+      });
 
-    if (!inviterMembership) {
-      return NextResponse.json(
-        { error: "You don't have permission to invite members" },
-        { status: 403 }
-      );
+      if (!inviterMembership) {
+        return NextResponse.json(
+          { error: "You don't have permission to invite members" },
+          { status: 403 }
+        );
+      }
     }
 
     const allUsers = await prisma.user.findMany();

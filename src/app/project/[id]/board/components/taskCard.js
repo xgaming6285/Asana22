@@ -41,7 +41,7 @@ const priorityConfig = {
   },
 };
 
-const TaskCard = ({ task, assignee, onTaskUpdated, onTaskDeleted, currentUserRole, currentUserId }) => {
+const TaskCard = ({ task, assignee, onTaskUpdated, onTaskDeleted, currentUserRole, currentUserId, currentUserSystemRole }) => {
   const { openModal } = useModal();
   const {
     id,
@@ -73,10 +73,11 @@ const TaskCard = ({ task, assignee, onTaskUpdated, onTaskDeleted, currentUserRol
   // Check if current user can delete this task
   const isProjectAdminOrCreator = currentUserRole === 'ADMIN' || currentUserRole === 'CREATOR';
   const isTaskCreator = createdBy && createdBy.id === currentUserId;
-  const canDeleteTask = isProjectAdminOrCreator || isTaskCreator;
+  const isSuperAdmin = currentUserSystemRole === 'SUPER_ADMIN';
+  const canDeleteTask = isProjectAdminOrCreator || isTaskCreator || isSuperAdmin;
   
   // Debug logging
-  console.log(`Debug TaskCard - Task ${id}: currentUserRole=${currentUserRole}, currentUserId=${currentUserId}, createdById=${createdBy?.id}, isTaskCreator=${isTaskCreator}, canDeleteTask=${canDeleteTask}`);
+  console.log(`Debug TaskCard - Task ${id}: currentUserRole=${currentUserRole}, currentUserId=${currentUserId}, createdById=${createdBy?.id}, isTaskCreator=${isTaskCreator}, isSuperAdmin=${isSuperAdmin}, canDeleteTask=${canDeleteTask}`);
 
   const handleTaskClick = () => {
     openModal({

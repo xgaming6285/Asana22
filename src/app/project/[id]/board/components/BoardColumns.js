@@ -357,6 +357,7 @@ export default function BoardColumns({ projectId, projectMembers = [] }) {
                           onTaskDeleted={handleTaskDeleted}
                           currentUserRole={currentUserRole}
                           currentUserId={currentUser?.id}
+                          currentUserSystemRole={currentUser?.systemRole}
                         />
                       </div>
                     ))

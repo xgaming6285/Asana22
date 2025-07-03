@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { encryptGoalData, decryptGoalsArray, decryptUserData } from "../../utils/encryption.js";
-import { getUserIdFromToken } from "../../utils/auth.js";
+import { getUserIdFromToken, isSuperAdmin } from "../../utils/auth.js";
 
 const prisma = new PrismaClient();
 
 export async function GET(request) {
   try {
     const userId = await getUserIdFromToken();
+    const isAdmin = await isSuperAdmin(userId);
 
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type");
@@ -16,16 +17,19 @@ export async function GET(request) {
     let whereClause = {};
 
     if (projectId) {
-      const projectMembership = await prisma.projectMembership.findFirst({
-        where: {
-          projectId: parseInt(projectId),
-          userId: userId,
-          status: 'ACTIVE'
-        }
-      });
+      // Super admin can access any project's goals
+      if (!isAdmin) {
+        const projectMembership = await prisma.projectMembership.findFirst({
+          where: {
+            projectId: parseInt(projectId),
+            userId: userId,
+            status: 'ACTIVE'
+          }
+        });
 
-      if (!projectMembership) {
-        return NextResponse.json({ error: "Access denied to project" }, { status: 403 });
+        if (!projectMembership) {
+          return NextResponse.json({ error: "Access denied to project" }, { status: 403 });
+        }
       }
 
       whereClause = {
@@ -36,22 +40,27 @@ export async function GET(request) {
         }
       };
     } else {
-      if (type === 'PERSONAL') {
-        whereClause = {
-          type: 'PERSONAL',
-          OR: [
-            { ownerId: userId },
-            { members: { some: { userId: userId } } }
-          ]
-        };
-      } else if (type === 'TEAM' || type === 'COMPANY') {
-        whereClause = {
-          type: type,
-          OR: [
-            { ownerId: userId },
-            { members: { some: { userId: userId } } }
-          ]
-        };
+      if (isAdmin) {
+        // Super admin can see all goals, optionally filtered by type
+        whereClause = type ? { type: type } : {};
+      } else {
+        if (type === 'PERSONAL') {
+          whereClause = {
+            type: 'PERSONAL',
+            OR: [
+              { ownerId: userId },
+              { members: { some: { userId: userId } } }
+            ]
+          };
+        } else if (type === 'TEAM' || type === 'COMPANY') {
+          whereClause = {
+            type: type,
+            OR: [
+              { ownerId: userId },
+              { members: { some: { userId: userId } } }
+            ]
+          };
+        }
       }
     }
 
@@ -91,10 +100,10 @@ export async function GET(request) {
       let canDelete = false;
       
       if (projectId) {
-        canEdit = goal.ownerId === userId || 
+        canEdit = isAdmin || goal.ownerId === userId || 
                  (userMembership && (userMembership.role === 'EDITOR' || goal.type === 'TEAM'));
         // For deletion: Only goal owner or project admin/creator can delete (consistent with task logic)
-        canDelete = goal.ownerId === userId;
+        canDelete = isAdmin || goal.ownerId === userId;
         // Check if user is project admin/creator for linked goals
         if (!canDelete && goal.linkedProjects.length > 0) {
           const hasAdminAccess = goal.linkedProjects.some(linkedProject => 
@@ -105,10 +114,10 @@ export async function GET(request) {
           canDelete = hasAdminAccess;
         }
       } else {
-        canEdit = goal.ownerId === userId ||
+        canEdit = isAdmin || goal.ownerId === userId ||
                  (goal.type === 'TEAM' && userMembership?.role === 'EDITOR');
         // For deletion: Only goal owner can delete (consistent with task logic)
-        canDelete = goal.ownerId === userId;
+        canDelete = isAdmin || goal.ownerId === userId;
         // Check if user is project admin/creator for any linked goals
         if (!canDelete && goal.linkedProjects.length > 0) {
           const hasAdminAccess = goal.linkedProjects.some(linkedProject => 

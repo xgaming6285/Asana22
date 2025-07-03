@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { getUserIdFromToken } from "../../../../utils/auth.js";
+import { getUserIdFromToken, isSuperAdmin } from "../../../../utils/auth.js";
 import { decryptProjectData, encryptUserData, decryptUserData } from "../../../../utils/encryption.js";
+import { Resend } from 'resend';
+import ProjectInvitationEmail from '@/app/components/emails/ProjectInvitation';
+import signalService from '@/app/services/signalService';
 
 const prisma = new PrismaClient();
 
@@ -12,19 +15,23 @@ export async function GET(request, { params }) {
 
     const { id: projectId } = await params;
 
-    // Check if user has permission to view invites
-    const membership = await prisma.projectMembership.findFirst({
-      where: {
-        projectId: parseInt(projectId),
-        userId: userId,
-        role: {
-          in: ["ADMIN", "CREATOR"],
+    // Check if user is super admin or has permission to view invites
+    const isUserSuperAdmin = await isSuperAdmin(userId);
+    
+    if (!isUserSuperAdmin) {
+      const membership = await prisma.projectMembership.findFirst({
+        where: {
+          projectId: parseInt(projectId),
+          userId: userId,
+          role: {
+            in: ["ADMIN", "CREATOR"],
+          },
         },
-      },
-    });
+      });
 
-    if (!membership) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      if (!membership) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
 
     const invitations = await prisma.projectMembership.findMany({
@@ -73,33 +80,77 @@ export async function POST(request, { params }) {
     const userId = await getUserIdFromToken();
 
     const { id: projectId } = await params;
-    const { email, role } = await request.json();
+    const { email, role, signalPhone, signalApiKey } = await request.json();
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    // Check if user has permission to invite
-    const membership = await prisma.projectMembership.findFirst({
-      where: {
-        projectId: parseInt(projectId),
-        userId: userId,
-        role: {
-          in: ["ADMIN", "CREATOR"],
+    // Check if user is super admin or has permission to invite
+    const isUserSuperAdmin = await isSuperAdmin(userId);
+    
+    if (!isUserSuperAdmin) {
+      const membership = await prisma.projectMembership.findFirst({
+        where: {
+          projectId: parseInt(projectId),
+          userId: userId,
+          role: {
+            in: ["ADMIN", "CREATOR"],
+          },
         },
-      },
-    });
+      });
 
-    if (!membership) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      if (!membership) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
 
-    // Find or create user
-    let user = await prisma.user.findUnique({
-      where: {
-        email,
+    // Get current user (inviter) information
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
       },
     });
+
+    if (!currentUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Decrypt user data to get the actual names
+    const decryptedUser = decryptUserData(currentUser);
+
+    // Get project information
+    const project = await prisma.project.findUnique({
+      where: { id: parseInt(projectId) },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+      },
+    });
+
+    if (!project) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
+    // Decrypt project data
+    const decryptedProject = decryptProjectData(project);
+
+    // Find or create user (emails are encrypted, so we need to search through all users)
+    const allUsers = await prisma.user.findMany();
+    let user = null;
+    
+    for (const u of allUsers) {
+      const decryptedUser = decryptUserData(u);
+      if (decryptedUser.email === email) {
+        user = u;
+        break;
+      }
+    }
 
     if (!user) {
       // Create a new user if they don't exist
@@ -150,6 +201,7 @@ export async function POST(request, { params }) {
         userId: user.id,
         role: role || "USER",
         status: "PENDING",
+        invitedBy: userId,
       },
       include: {
         user: {
@@ -175,10 +227,57 @@ export async function POST(request, { params }) {
       user: decryptUserData(invitation.user)
     };
 
-    // Here you could add email notification logic
-    // For example, send an email to the invited user
+    // Send email invitation
+    let emailSent = false;
+    if (process.env.RESEND_API_KEY) {
+      try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`;
+        
+        await resend.emails.send({
+          from: 'Project Management <noreply@projectmanagement.com>',
+          to: email,
+          subject: `Invitation to join ${decryptedProject.name}`,
+          react: ProjectInvitationEmail({
+            projectName: decryptedProject.name,
+            inviterName: `${decryptedUser.firstName} ${decryptedUser.lastName}`,
+            inviteLink
+          })
+        });
+        emailSent = true;
+      } catch (error) {
+        console.error('Failed to send email invitation:', error);
+        // Don't fail the entire request if email fails
+      }
+    } else {
+      console.warn('RESEND_API_KEY not configured, skipping email invitation');
+    }
 
-    return NextResponse.json(decryptedInvitation);
+    // Send Signal message if phone and API key are provided
+    let signalSent = false;
+    if (signalPhone && signalApiKey) {
+      try {
+        const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`;
+        signalSent = await signalService.sendProjectInvitation(
+          signalPhone,
+          signalApiKey,
+          {
+            projectName: decryptedProject.name,
+            inviterName: `${decryptedUser.firstName} ${decryptedUser.lastName}`,
+            inviteLink
+          }
+        );
+      } catch (error) {
+        console.error('Failed to send Signal message:', error);
+        // Don't fail the entire request if Signal fails
+      }
+    }
+
+    return NextResponse.json({
+      ...decryptedInvitation,
+      emailSent,
+      signalSent
+    });
   } catch (error) {
     console.error("Error creating invitation:", error);
     if (error.code === "P2002") {

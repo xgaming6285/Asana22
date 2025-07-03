@@ -28,6 +28,7 @@ export async function GET(request) {
         firstName: true,
         lastName: true,
         imageUrl: true,
+        systemRole: true,
       },
     });
 

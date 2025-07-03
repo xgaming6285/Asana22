@@ -1,32 +1,60 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { encryptTaskData, decryptTasksArray, decryptUserData } from "../../utils/encryption.js";
-import { getUserIdFromToken } from "../../utils/auth.js";
+import { getUserIdFromToken, isSuperAdmin } from "../../utils/auth.js";
 
 const prisma = new PrismaClient();
 
 // GET tasks with optional project filter
 export async function GET(request) {
-  // This part is from before the conflict, so it remains.
-  // Note: 'searchParams' and 'projectId' here are in the outer scope.
-  const { searchParams: outerSearchParams } = new URL(request.url);
-  const outerProjectId = outerSearchParams.get("projectId");
-
-  const whereClause = {}; // This 'whereClause' is prepared based on outerProjectId
-  if (outerProjectId) {
-    whereClause.projectId = parseInt(outerProjectId, 10);
-    if (isNaN(whereClause.projectId)) {
-      return NextResponse.json({ error: "Invalid projectId" }, { status: 400 });
-    }
-  }
-
   try {
+    const userId = await getUserIdFromToken();
+    const isAdmin = await isSuperAdmin(userId);
+
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get("projectId");
 
-    const where = {}; // This 'where' object is built using the inner 'projectId'
+    let where = {};
+    
     if (projectId) {
-      where.projectId = Number(projectId); // Uses Number() for conversion
+      where.projectId = Number(projectId);
+      if (isNaN(where.projectId)) {
+        return NextResponse.json({ error: "Invalid projectId" }, { status: 400 });
+      }
+      
+      // Check project access for non-admin users
+      if (!isAdmin) {
+        const project = await prisma.project.findUnique({
+          where: { id: where.projectId },
+          include: {
+            projectMemberships: {
+              where: {
+                userId: userId,
+                status: "ACTIVE"
+              }
+            }
+          }
+        });
+        
+        if (!project || project.projectMemberships.length === 0) {
+          return NextResponse.json({ error: "Access denied to project" }, { status: 403 });
+        }
+      }
+    } else if (!isAdmin) {
+      // Non-admin users can only see tasks from projects they're members of
+      const userProjectIds = await prisma.projectMembership.findMany({
+        where: {
+          userId: userId,
+          status: "ACTIVE"
+        },
+        select: {
+          projectId: true
+        }
+      });
+      
+      where.projectId = {
+        in: userProjectIds.map(membership => membership.projectId)
+      };
     }
 
     const tasks = await prisma.task.findMany({
@@ -75,6 +103,7 @@ export async function POST(request) {
   try {
     // Authentication check
     const userId = await getUserIdFromToken();
+    const isAdmin = await isSuperAdmin(userId);
 
     const data = await request.json();
 
@@ -110,12 +139,14 @@ export async function POST(request) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    // Check if user is a member of the project
-    const isProjectMember = project.projectMemberships.some(
-      (member) => member.userId === userId && member.status === "ACTIVE"
-    );
-    if (!isProjectMember) {
-      return NextResponse.json({ error: "Forbidden: Not authorized to create tasks in this project" }, { status: 403 });
+    // Check if user is a member of the project (skip for super admin)
+    if (!isAdmin) {
+      const isProjectMember = project.projectMemberships.some(
+        (member) => member.userId === userId && member.status === "ACTIVE"
+      );
+      if (!isProjectMember) {
+        return NextResponse.json({ error: "Forbidden: Not authorized to create tasks in this project" }, { status: 403 });
+      }
     }
 
     // Encrypt task data before storing

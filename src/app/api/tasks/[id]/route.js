@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getUserIdFromToken } from "../../../utils/auth";
+import { getUserIdFromToken, isSuperAdmin } from "../../../utils/auth";
 import { PrismaClient } from "@prisma/client";
 import { encryptTaskData, decryptTaskData, decryptUserData } from "../../../utils/encryption.js";
 
@@ -77,6 +77,8 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const isAdmin = await isSuperAdmin(userId);
+
     const task = await prisma.task.findUnique({
       where: { id: parseInt(id) },
       include: {
@@ -102,14 +104,16 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
-    // АВТОРИЗАЦИЯ - ДОБАВЕНА: Проверка дали потребителят е член на проекта или assignee
-    const isProjectMember = task.project?.projectMemberships.some(
-      (member) => member.userId === userId && member.status === "ACTIVE"
-    );
-    const isAssignee = task.assigneeId === userId;
+    // АВТОРИЗАЦИЯ - Super admin bypass or regular permission check
+    if (!isAdmin) {
+      const isProjectMember = task.project?.projectMemberships.some(
+        (member) => member.userId === userId && member.status === "ACTIVE"
+      );
+      const isAssignee = task.assigneeId === userId;
 
-    if (!isProjectMember && !isAssignee) {
-      return NextResponse.json({ error: "Forbidden: Not authorized to view this task" }, { status: 403 });
+      if (!isProjectMember && !isAssignee) {
+        return NextResponse.json({ error: "Forbidden: Not authorized to view this task" }, { status: 403 });
+      }
     }
 
     // Decrypt task data and user data before sending response
@@ -151,6 +155,7 @@ async function updateTask(request, params) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const isAdmin = await isSuperAdmin(userId);
     const data = await request.json();
     const updateData = {};
 
@@ -172,15 +177,17 @@ async function updateTask(request, params) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
-    // АВТОРИЗАЦИЯ - ДОБАВЕНА: Проверка дали потребителят има право да актуализира
-    const isProjectAdminOrCreator = originalTask.project?.projectMemberships.some(
-      (member) => member.userId === userId && (member.role === "ADMIN" || member.role === "CREATOR")
-    );
-    const isAssignee = originalTask.assigneeId === userId;
+    // АВТОРИЗАЦИЯ - Super admin bypass or regular permission check
+    if (!isAdmin) {
+      const isProjectAdminOrCreator = originalTask.project?.projectMemberships.some(
+        (member) => member.userId === userId && (member.role === "ADMIN" || member.role === "CREATOR")
+      );
+      const isAssignee = originalTask.assigneeId === userId;
 
-    // Например: Само admin/creator на проекта или assignee може да актуализира задачата
-    if (!isProjectAdminOrCreator && !isAssignee) {
-      return NextResponse.json({ error: "Forbidden: Not authorized to update this task" }, { status: 403 });
+      // Например: Само admin/creator на проекта или assignee може да актуализира задачата
+      if (!isProjectAdminOrCreator && !isAssignee) {
+        return NextResponse.json({ error: "Forbidden: Not authorized to update this task" }, { status: 403 });
+      }
     }
 
     // Попълване на updateData
@@ -339,6 +346,8 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const isAdmin = await isSuperAdmin(userId);
+
     // 1. Вземете задачата, за да проверите права и да получите projectId за актуализация на цели
     const taskToDelete = await prisma.task.findUnique({
       where: { id: parseInt(id) },
@@ -358,15 +367,17 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ message: "Task not found" }, { status: 404 });
     }
 
-    // АВТОРИЗАЦИЯ: Само admin/creator на проекта или assignee може да изтрие задачата
-    const isProjectAdminOrCreator = taskToDelete.project?.projectMemberships.some(
-      (member) => member.userId === userId && (member.role === "ADMIN" || member.role === "CREATOR")
-    );
-    const isTaskCreator = taskToDelete.createdById === userId;
+    // АВТОРИЗАЦИЯ - Super admin bypass or regular permission check
+    if (!isAdmin) {
+      const isProjectAdminOrCreator = taskToDelete.project?.projectMemberships.some(
+        (member) => member.userId === userId && (member.role === "ADMIN" || member.role === "CREATOR")
+      );
+      const isTaskCreator = taskToDelete.createdById === userId;
 
-    // Allow deletion if user is project admin/creator OR if user created the task
-    if (!isProjectAdminOrCreator && !isTaskCreator) {
-      return NextResponse.json({ error: "Forbidden: Not authorized to delete this task" }, { status: 403 });
+      // Allow deletion if user is project admin/creator OR if user created the task
+      if (!isProjectAdminOrCreator && !isTaskCreator) {
+        return NextResponse.json({ error: "Forbidden: Not authorized to delete this task" }, { status: 403 });
+      }
     }
 
     // Изтриване на задачата

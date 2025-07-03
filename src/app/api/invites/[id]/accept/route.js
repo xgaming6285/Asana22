@@ -37,14 +37,12 @@ export async function POST(request, { params }) {
     // Decrypt user data to get the actual email
     const decryptedUser = decryptUserData(currentUser);
 
-    // Find the invitation
+    // Find the invitation (need to handle encrypted emails)
     const invitation = await prisma.projectMembership.findFirst({
       where: {
         id: parseInt(inviteId),
         status: "PENDING",
-        user: {
-          email: decryptedUser.email,
-        },
+        userId: userId,
       },
       include: {
         project: {
