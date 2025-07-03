@@ -16,6 +16,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   
   // Captcha state
   const [captcha, setCaptcha] = useState({ question: '', answer: 0 });
@@ -136,14 +137,7 @@ export default function RegisterPage() {
         throw new Error(data.error || 'Нещо се обърка');
       }
 
-      // Mark user as new for tutorial purposes
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('isNewUser', 'true');
-        sessionStorage.setItem('justRegistered', 'true');
-      }
-
-      // Redirect to login page on successful registration
-      router.push('/login');
+      setRegistrationSuccess(true);
 
     } catch (err) {
       setError(err.message);
@@ -164,6 +158,25 @@ export default function RegisterPage() {
   };
 
   const passwordStrength = getPasswordStrength(formData.password);
+
+  if (registrationSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white p-4">
+        <div className="max-w-md w-full text-center bg-gray-800 p-8 rounded-lg shadow-lg">
+          <h2 className="text-2xl font-bold mb-4">Registration Successful!</h2>
+          <p className="mb-4">
+            A verification link has been sent to your email address. Please check your inbox and click the link to activate your account.
+          </p>
+          <p className="text-sm text-gray-400">
+            If you don't see the email, please check your spam folder.
+          </p>
+          <Link href="/login" className="mt-6 inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
+              Go to Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen overflow-auto">
