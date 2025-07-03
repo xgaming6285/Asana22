@@ -52,6 +52,10 @@ model User {
   imageUrl             String?
   systemRole           SystemRole          @default(USER)
 
+  emailVerified        DateTime?
+  emailVerificationToken String?             @unique
+  emailVerificationTokenExpires DateTime?
+
   // Relations
   projectMemberships   ProjectMembership[] // Memberships in different projects
   tasks                Task[]              // Tasks assigned to this user

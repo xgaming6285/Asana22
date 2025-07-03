@@ -3,8 +3,12 @@ import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
 import { encryptUserData } from '../../../utils/encryption';
 import { validatePassword, validateEmail, sanitizeString } from '../../../utils/validation';
+import crypto from 'crypto';
+import { Resend } from 'resend';
+import EmailVerificationEmail from '@/app/components/emails/EmailVerificationEmail';
 
 const prisma = new PrismaClient();
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request) {
   try {
@@ -39,11 +43,20 @@ export async function POST(request) {
     });
 
     if (existingUser) {
+        // If user exists but is not verified, we can resend the verification email
+        if (!existingUser.emailVerified) {
+            // Potentially add logic here to resend verification email if needed
+            return NextResponse.json({ error: 'This email is already registered but not verified. Please check your email for a verification link.' }, { status: 409 });
+        }
       return NextResponse.json({ error: 'User with this email already exists' }, { status: 409 });
     }
 
     // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 12); // Increased salt rounds for better security
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Generate email verification token
+    const emailVerificationToken = crypto.randomBytes(32).toString('hex');
+    const emailVerificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     // Encrypt user data before saving
     const encryptedData = encryptUserData({
@@ -53,17 +66,31 @@ export async function POST(request) {
     });
 
     // Create the new user
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         ...encryptedData,
         password: hashedPassword,
+        emailVerificationToken,
+        emailVerificationTokenExpires,
       },
     });
 
-    // Don't return the password in the response
-    const { password: _, ...userWithoutPassword } = user;
+    // Send verification email
+    try {
+        const verificationLink = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/verify-email?token=${emailVerificationToken}`;
+        await resend.emails.send({
+            from: 'onboarding@resend.dev',
+            to: email,
+            subject: 'Verify your email address',
+            react: EmailVerificationEmail({ verificationLink }),
+        });
+    } catch (error) {
+        console.error('Failed to send verification email:', error);
+        // Even if email fails, user is created. They can request another email.
+        // For production, you might want a more robust error handling or retry mechanism.
+    }
 
-    return NextResponse.json(userWithoutPassword, { status: 201 });
+    return NextResponse.json({ message: 'Registration successful. Please check your email to verify your account.' }, { status: 201 });
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json({ error: 'An internal server error occurred' }, { status: 500 });

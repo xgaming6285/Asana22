@@ -29,7 +29,22 @@ export async function POST(request) {
       }
     }
 
-    if (!user || !user.password) {
+    if (!user) {
+      return NextResponse.json({ error: 'Невалидни данни за вход' }, { status: 401 });
+    }
+
+    // Check if email is verified
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        { 
+          error: 'Моля, потвърдете имейла си, преди да влезете. Проверете входящата си поща за линк за верификация.',
+          action: 'resend_verification' 
+        }, 
+        { status: 403 }
+      );
+    }
+
+    if (!user.password) {
       // We check for user.password to handle users migrated from Clerk without a password yet
       return NextResponse.json({ error: 'Невалидни данни за вход' }, { status: 401 });
     }
