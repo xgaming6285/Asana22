@@ -132,6 +132,91 @@ const adminService = {
     } catch (error) {
       return false;
     }
+  },
+
+  // User project membership management
+  async addUserToProject(userId, projectId, role = 'USER') {
+    const response = await fetch(`/api/admin/users/${userId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'ADD_TO_PROJECT',
+        projectId,
+        role,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to add user to project');
+    }
+
+    return response.json();
+  },
+
+  async removeUserFromProject(userId, projectId) {
+    const response = await fetch(`/api/admin/users/${userId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'REMOVE_FROM_PROJECT',
+        projectId,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to remove user from project');
+    }
+
+    return response.json();
+  },
+
+  async changeUserRoleInProject(userId, projectId, role) {
+    const response = await fetch(`/api/admin/users/${userId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'CHANGE_ROLE',
+        projectId,
+        role,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to change user role');
+    }
+
+    return response.json();
+  },
+
+  async moveUserToProject(userId, fromProjectId, toProjectId, role = null) {
+    const response = await fetch(`/api/admin/users/${userId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'MOVE_TO_PROJECT',
+        fromProjectId,
+        projectId: toProjectId,
+        role,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to move user to project');
+    }
+
+    return response.json();
   }
 };
 

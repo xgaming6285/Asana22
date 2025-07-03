@@ -206,9 +206,52 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
     }
 
-    // Prevent self-deletion
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Prevent deleting self
     if (userId === adminUserId) {
-      return NextResponse.json({ error: "Cannot delete your own account" }, { status: 400 });
+      return NextResponse.json({ error: "Cannot delete yourself" }, { status: 400 });
+    }
+
+    // Delete user and all related data
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    return NextResponse.json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    if (error.message === 'Super admin access required') {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    return NextResponse.json({ error: "Failed to delete user" }, { status: 500 });
+  }
+}
+
+// PATCH user project memberships (Super Admin only)
+export async function PATCH(request, { params }) {
+  try {
+    await requireSuperAdmin();
+
+    const { id } = await params;
+    const userId = parseInt(id);
+
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
+    }
+
+    const data = await request.json();
+    const { action, projectId, role } = data;
+
+    if (!action || !projectId) {
+      return NextResponse.json({ error: "Action and project ID are required" }, { status: 400 });
     }
 
     // Check if user exists
@@ -220,17 +263,161 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Delete user (this will cascade to related records based on schema)
-    await prisma.user.delete({
-      where: { id: userId },
+    // Check if project exists
+    const project = await prisma.project.findUnique({
+      where: { id: parseInt(projectId) },
     });
 
-    return new Response(null, { status: 204 });
+    if (!project) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
+    switch (action) {
+      case 'ADD_TO_PROJECT':
+        // Check if user is already a member
+        const existingMembership = await prisma.projectMembership.findFirst({
+          where: {
+            userId: userId,
+            projectId: parseInt(projectId),
+          },
+        });
+
+        if (existingMembership) {
+          return NextResponse.json({ error: "User is already a member of this project" }, { status: 400 });
+        }
+
+        // Add user to project
+        await prisma.projectMembership.create({
+          data: {
+            userId: userId,
+            projectId: parseInt(projectId),
+            role: role || 'USER',
+            status: 'ACTIVE',
+          },
+        });
+
+        return NextResponse.json({ message: "User added to project successfully" });
+
+      case 'REMOVE_FROM_PROJECT':
+        // Check if user is a member
+        const membership = await prisma.projectMembership.findFirst({
+          where: {
+            userId: userId,
+            projectId: parseInt(projectId),
+          },
+        });
+
+        if (!membership) {
+          return NextResponse.json({ error: "User is not a member of this project" }, { status: 400 });
+        }
+
+        // Remove user from project
+        await prisma.projectMembership.delete({
+          where: {
+            id: membership.id,
+          },
+        });
+
+        return NextResponse.json({ message: "User removed from project successfully" });
+
+      case 'CHANGE_ROLE':
+        // Check if user is a member
+        const membershipToUpdate = await prisma.projectMembership.findFirst({
+          where: {
+            userId: userId,
+            projectId: parseInt(projectId),
+          },
+        });
+
+        if (!membershipToUpdate) {
+          return NextResponse.json({ error: "User is not a member of this project" }, { status: 400 });
+        }
+
+        if (!role || !['USER', 'ADMIN', 'CREATOR'].includes(role)) {
+          return NextResponse.json({ error: "Valid role is required" }, { status: 400 });
+        }
+
+        // Update user role in project
+        await prisma.projectMembership.update({
+          where: {
+            id: membershipToUpdate.id,
+          },
+          data: {
+            role: role,
+          },
+        });
+
+        return NextResponse.json({ message: "User role updated successfully" });
+
+      case 'MOVE_TO_PROJECT':
+        const { fromProjectId } = data;
+        
+        if (!fromProjectId) {
+          return NextResponse.json({ error: "From project ID is required for move operation" }, { status: 400 });
+        }
+
+        // Check if source project exists
+        const fromProject = await prisma.project.findUnique({
+          where: { id: parseInt(fromProjectId) },
+        });
+
+        if (!fromProject) {
+          return NextResponse.json({ error: "Source project not found" }, { status: 404 });
+        }
+
+        // Check if user is member of source project
+        const sourceMembership = await prisma.projectMembership.findFirst({
+          where: {
+            userId: userId,
+            projectId: parseInt(fromProjectId),
+          },
+        });
+
+        if (!sourceMembership) {
+          return NextResponse.json({ error: "User is not a member of the source project" }, { status: 400 });
+        }
+
+        // Check if user is already in target project
+        const targetMembership = await prisma.projectMembership.findFirst({
+          where: {
+            userId: userId,
+            projectId: parseInt(projectId),
+          },
+        });
+
+        if (targetMembership) {
+          return NextResponse.json({ error: "User is already a member of the target project" }, { status: 400 });
+        }
+
+        // Move user from source to target project
+        await prisma.$transaction([
+          // Remove from source project
+          prisma.projectMembership.delete({
+            where: {
+              id: sourceMembership.id,
+            },
+          }),
+          // Add to target project
+          prisma.projectMembership.create({
+            data: {
+              userId: userId,
+              projectId: parseInt(projectId),
+              role: role || sourceMembership.role, // Keep same role or use new one
+              status: 'ACTIVE',
+            },
+          }),
+        ]);
+
+        return NextResponse.json({ message: "User moved to project successfully" });
+
+      default:
+        return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    }
   } catch (error) {
-    console.error("Error deleting user:", error);
+    console.error("Error managing user project membership:", error);
     if (error.message === 'Super admin access required') {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    return NextResponse.json({ error: "Failed to delete user" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to manage user project membership" }, { status: 500 });
   }
 } 

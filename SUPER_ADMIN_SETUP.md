@@ -18,6 +18,12 @@ The Super Admin has access to:
 - Edit user profiles, passwords, and system roles
 - Delete users (except themselves)
 - Promote/demote users to/from Super Admin
+- **Advanced Project Management**:
+  - Add users to any project with specific roles
+  - Remove users from projects (kick users)
+  - Move users between projects
+  - Change user roles within projects
+  - View detailed user project memberships
 
 ### 📊 **Project Management**
 - View all projects with complete details
@@ -72,6 +78,11 @@ Once promoted, Super Admins will see:
 - `POST /api/admin/users` - Create new user
 - `PUT /api/admin/users/[id]` - Update user (including role changes)
 - `DELETE /api/admin/users/[id]` - Delete user
+- `PATCH /api/admin/users/[id]` - Advanced user-project management:
+  - Add user to project: `{ "action": "ADD_TO_PROJECT", "projectId": 123, "role": "USER" }`
+  - Remove user from project: `{ "action": "REMOVE_FROM_PROJECT", "projectId": 123 }`
+  - Change user role in project: `{ "action": "CHANGE_ROLE", "projectId": 123, "role": "ADMIN" }`
+  - Move user between projects: `{ "action": "MOVE_TO_PROJECT", "fromProjectId": 123, "projectId": 456, "role": "USER" }`
 
 ### Project Management
 - `GET /api/admin/projects` - List all projects (with pagination and search)
