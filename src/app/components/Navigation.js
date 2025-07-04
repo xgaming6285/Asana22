@@ -336,15 +336,22 @@ export default function Navigation() {
                                                             Admin Panel
                                                         </Link>
                                                     )}
-                                                    <button
-                                                        onClick={() => {
-                                                            logout();
-                                                            setProfileDropdownOpen(false);
-                                                        }}
-                                                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300 transition-colors duration-200"
-                                                    >
-                                                        Logout
-                                                    </button>
+                                                    <div className="py-1">
+                                                        <div className="px-4 py-2">
+                                                            <p className="text-sm text-white">{user.firstName} {user.lastName}</p>
+                                                            <p className="text-sm font-medium text-gray-400 truncate">{user.email}</p>
+                                                        </div>
+                                                        <div className="border-t border-gray-700"></div>
+                                                        <Link href="/settings" onClick={() => setProfileDropdownOpen(false)}>
+                                                            <div className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Settings</div>
+                                                        </Link>
+                                                        <button
+                                                            onClick={logout}
+                                                            className="w-full text-left block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+                                                        >
+                                                            Logout
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </>

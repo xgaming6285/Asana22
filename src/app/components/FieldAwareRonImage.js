@@ -21,6 +21,10 @@ export default function FieldAwareRonImage({ formType = 'login' }) {
       { id: 'email', selector: '#email', label: 'Пиши нещо с @' },
       { id: 'password', selector: '#password', label: 'Тука внимавай' },
       { id: 'captcha', selector: '#captcha', label: 'Айде са да те видиме' }
+    ],
+    resetPassword: [
+      { id: 'password', selector: '#password', label: 'Нова парола тука' },
+      { id: 'confirmPassword', selector: '#confirmPassword', label: 'Пак същата парола' }
     ]
   };
 

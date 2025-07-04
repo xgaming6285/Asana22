@@ -56,6 +56,14 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Невалидни данни за вход' }, { status: 401 });
     }
 
+    // --- 2FA Check ---
+    if (user.isTwoFactorEnabled) {
+      // Don't issue the final token yet.
+      // Signal to the frontend that a 2FA token is required.
+      return NextResponse.json({ twoFactorRequired: true });
+    }
+    // --- End 2FA Check ---
+
     // Create JWT token
     const token = jwt.sign(
       { userId: user.id, email: user.email },
@@ -63,19 +71,18 @@ export async function POST(request) {
       { expiresIn: '7d' } // Token expires in 7 days
     );
 
-    // Set token in an httpOnly cookie
-    cookies().set('token', token, {
+    const decryptedUser = decryptUserData(user);
+    const { password: _, ...userWithoutPassword } = decryptedUser;
+
+    const res = NextResponse.json({ user: userWithoutPassword });
+    res.cookies.set('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'development',
       sameSite: 'strict',
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: '/',
     });
-
-    const decryptedUser = decryptUserData(user);
-    const { password: _, ...userWithoutPassword } = decryptedUser;
-
-    return NextResponse.json({ user: userWithoutPassword });
+    return res;
 
   } catch (error) {
     console.error('Login error:', error);
