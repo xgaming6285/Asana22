@@ -29,6 +29,7 @@ export async function GET(request) {
         lastName: true,
         imageUrl: true,
         systemRole: true,
+        isTwoFactorEnabled: true,
       },
     });
 

@@ -30,26 +30,24 @@ const TwoFactorAuth = () => {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    if (user && !is2faEnabled) {
-      // We need to fetch the full user object to check for 2FA status
-      const loadUser2faStatus = async () => {
-        try {
-          const fullUserResponse = await apiFetch('/api/me');
-          if (fullUserResponse.user) {
-            setIs2faEnabled(fullUserResponse.user.isTwoFactorEnabled);
-          }
-        } catch (e) {
-          setError('Could not load user status.');
-        } finally {
-          setLoading(false);
-        }
-      };
-      loadUser2faStatus();
-    } else {
-        setLoading(false);
+  const loadUser2faStatus = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const fullUserResponse = await apiFetch('/api/auth/me');
+      setIs2faEnabled(fullUserResponse.isTwoFactorEnabled);
+    } catch (e) {
+      setError('Could not load user status. Please try refreshing.');
+    } finally {
+      setLoading(false);
     }
-  }, [user, is2faEnabled]);
+  };
+
+  useEffect(() => {
+    if (user) {
+      loadUser2faStatus();
+    }
+  }, [user]);
 
   const handleEnable2FA = async () => {
     setError('');
@@ -120,7 +118,15 @@ const TwoFactorAuth = () => {
       {error && <p className="text-red-400 mb-4">{error}</p>}
       {message && <p className="text-green-400 mb-4">{message}</p>}
 
-      {!is2faEnabled && !setupInProgress && (
+      {error && (
+        <div className="mb-4">
+          <button onClick={loadUser2faStatus} disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-500">
+            {loading ? 'Refreshing...' : 'Refresh Status'}
+          </button>
+        </div>
+      )}
+
+      {!is2faEnabled && !setupInProgress && !error && (
         <div>
           <p className="text-gray-300 mb-4">
             Protect your account with an extra layer of security.
