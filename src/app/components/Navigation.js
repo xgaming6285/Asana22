@@ -308,11 +308,11 @@ export default function Navigation() {
                                                 className="fixed inset-0 z-10" 
                                                 onClick={() => setProfileDropdownOpen(false)}
                                             ></div>
-                                            <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-20">
+                                            <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-gradient-to-br from-gray-800 to-gray-900 shadow-lg ring-1 ring-white/10 focus:outline-none z-20">
                                                 <div className="py-2">
                                                     <div className="px-4 py-2 border-b border-gray-700">
                                                         <p className="text-sm font-medium text-white truncate">
-                                                            {user.name || user.firstName || user.email}
+                                                            {user.firstName} {user.lastName}
                                                         </p>
                                                         <p className="text-xs text-gray-400">
                                                             {user.email}
@@ -336,22 +336,16 @@ export default function Navigation() {
                                                             Admin Panel
                                                         </Link>
                                                     )}
-                                                    <div className="py-1">
-                                                        <div className="px-4 py-2">
-                                                            <p className="text-sm text-white">{user.firstName} {user.lastName}</p>
-                                                            <p className="text-sm font-medium text-gray-400 truncate">{user.email}</p>
-                                                        </div>
-                                                        <div className="border-t border-gray-700"></div>
-                                                        <Link href="/settings" onClick={() => setProfileDropdownOpen(false)}>
-                                                            <div className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Settings</div>
-                                                        </Link>
-                                                        <button
-                                                            onClick={logout}
-                                                            className="w-full text-left block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
-                                                        >
-                                                            Logout
-                                                        </button>
-                                                    </div>
+                                                    <div className="border-t border-gray-700 my-1"></div>
+                                                    <Link href="/settings" onClick={() => setProfileDropdownOpen(false)}>
+                                                        <div className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Settings</div>
+                                                    </Link>
+                                                    <button
+                                                        onClick={logout}
+                                                        className="w-full text-left block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+                                                    >
+                                                        Logout
+                                                    </button>
                                                 </div>
                                             </div>
                                         </>
